@@ -1,10 +1,12 @@
 #include <Arduino.h>
 #include <LoRa.h>
 #include <APRS-Decoder.h>
+#include <Adafruit_GPS.h>
 
 #include "settings.h"
 #include "display.h"
 
+Adafruit_GPS GPS(&Serial1);
 
 void setup_lora();
 
