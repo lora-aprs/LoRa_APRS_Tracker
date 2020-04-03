@@ -17,6 +17,7 @@ String create_long_aprs(RawDegrees lng);
 HardwareSerial ss(1);
 AXP20X_Class axp;
 TinyGPSPlus gps;
+int next_update = -1;
 
 void setup()
 {
@@ -52,30 +53,31 @@ void setup()
 
 void loop()
 {
-	static int update_min = -99;
 	while (ss.available() > 0)
 	{
 		char c = ss.read();
-		Serial.print(c);
+		//Serial.print(c);
 		gps.encode(c);
 	}
 
 	if(gps.time.isUpdated())
 	{
-		if(gps.time.isValid() && gps.time.minute() > update_min + BROADCAST_TIMEOUT
-			&& gps.location.isValid() && gps.location.isUpdated())
+		if(gps.time.isValid()
+                        && (next_update == gps.time.minute() || next_update == -1)
+			&& gps.location.isValid()
+                        && gps.location.isUpdated())
 		{
 			APRSMessage msg;
 			msg.setSource("OE5BPA-9");
 			msg.setDestination("APRS");
 			char body_char[50];
-			sprintf(body_char, "/%s>%s&LoRa APRS Tracker test", create_lat_aprs(gps.location.rawLat()).c_str(), create_long_aprs(gps.location.rawLng()).c_str());
+			sprintf(body_char, "=%s/%s>LoRa APRS Tracker test", create_lat_aprs(gps.location.rawLat()).c_str(), create_long_aprs(gps.location.rawLng()).c_str());
 			msg.getAPRSBody()->setData(String(body_char));
 			Serial.println(msg.encode());
 			//LoRa.beginPacket();
 			//LoRa.write((const uint8_t*)buffer.c_str(), buffer.length());
 			//LoRa.endPacket();
-			update_min = gps.time.minute();
+			next_update = (gps.time.minute() + BROADCAST_TIMEOUT) % 60;
 		}
 		show_display("OE5BPA",
 			String("Time: ") + gps.time.hour() + String(":") + gps.time.minute() + String(":") + gps.time.second(),
