@@ -27,6 +27,8 @@ void setup_display()
 	display.setTextSize(1);
 	display.setCursor(0,0);
 	display.print("LORA SENDER ");
+	display.ssd1306_command(SSD1306_SETCONTRAST);
+	display.ssd1306_command(1);
 	display.display();
 }
 
@@ -37,6 +39,8 @@ void show_display(String header, int wait)
 	display.setTextSize(2);
 	display.setCursor(0,0);
 	display.println(header);
+	display.ssd1306_command(SSD1306_SETCONTRAST);
+	display.ssd1306_command(1);
 	display.display();
 	delay(wait);
 }
@@ -51,6 +55,8 @@ void show_display(String header, String line1, int wait)
 	display.setTextSize(1);
 	display.setCursor(0,16);
 	display.println(line1);
+	display.ssd1306_command(SSD1306_SETCONTRAST);
+	display.ssd1306_command(1);
 	display.display();
 	delay(wait);
 }
@@ -67,6 +73,8 @@ void show_display(String header, String line1, String line2, int wait)
 	display.println(line1);
 	display.setCursor(0,26);
 	display.println(line2);
+	display.ssd1306_command(SSD1306_SETCONTRAST);
+	display.ssd1306_command(1);
 	display.display();
 	delay(wait);
 }
@@ -85,6 +93,8 @@ void show_display(String header, String line1, String line2, String line3, int w
 	display.println(line2);
 	display.setCursor(0,36);
 	display.println(line3);
+	display.ssd1306_command(SSD1306_SETCONTRAST);
+	display.ssd1306_command(1);
 	display.display();
 	delay(wait);
 }
@@ -105,6 +115,8 @@ void show_display(String header, String line1, String line2, String line3, Strin
 	display.println(line3);
 	display.setCursor(0,46);
 	display.println(line4);
+	display.ssd1306_command(SSD1306_SETCONTRAST);
+	display.ssd1306_command(1);
 	display.display();
 	delay(wait);
 }
@@ -127,6 +139,8 @@ void show_display(String header, String line1, String line2, String line3, Strin
 	display.println(line4);
 	display.setCursor(0,56);
 	display.println(line5);
+	display.ssd1306_command(SSD1306_SETCONTRAST);
+	display.ssd1306_command(1);
 	display.display();
 	delay(wait);
 }
