@@ -63,7 +63,8 @@ void loop()
 	{
 		if(gps.time.isValid()
 			&& (gps.time.minute() == update_min || update_min == -1)
-			&& gps.location.isValid())
+			&& gps.location.isValid()
+			&& gps.location.isUpdated())
 		{
 			APRSMessage msg;
 			msg.setSource("OE5BPA-9");
