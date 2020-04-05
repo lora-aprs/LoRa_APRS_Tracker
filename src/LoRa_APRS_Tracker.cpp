@@ -24,8 +24,8 @@ void setup()
 	setup_display();
 	
 	delay(500);
-	Serial.println("[INFO] LoRa APRS iGate by OE5BPA (Peter Buchegger)");
-	show_display("OE5BPA", "LoRa APRS iGate", "by Peter Buchegger", 2000);
+	Serial.println("[INFO] LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
+	show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
 
 	Wire.begin(SDA, SCL);
 	if (!axp.begin(Wire, AXP192_SLAVE_ADDRESS))
@@ -34,11 +34,9 @@ void setup()
 	} else {
 		Serial.println("LoRa-APRS / Init / AXP192 Begin FAIL");
 	}
-	axp.setPowerOutPut(AXP192_LDO2, AXP202_ON);
-	axp.setPowerOutPut(AXP192_LDO3, AXP202_ON);
-	axp.setPowerOutPut(AXP192_DCDC2, AXP202_ON);
-	axp.setPowerOutPut(AXP192_EXTEN, AXP202_ON);
-	axp.setPowerOutPut(AXP192_DCDC1, AXP202_ON);
+	axp.setPowerOutPut(AXP192_LDO2, AXP202_ON);  // LORA
+	axp.setPowerOutPut(AXP192_LDO3, AXP202_ON);  // GPS
+	axp.setPowerOutPut(AXP192_DCDC1, AXP202_ON); // OLED
 	axp.setDCDC1Voltage(3300);
 
 	ss.begin(9600, SERIAL_8N1, TXPin, RXPin);
@@ -48,34 +46,36 @@ void setup()
 	delay(500);
 }
 
-#define BROADCAST_TIMEOUT 5
+#define BROADCAST_TIMEOUT 1
 
 void loop()
 {
-	static int update_min = -99;
+	static int update_min = -1;
 	while (ss.available() > 0)
 	{
 		char c = ss.read();
-		Serial.print(c);
+		//Serial.print(c);
 		gps.encode(c);
 	}
 
 	if(gps.time.isUpdated())
 	{
-		if(gps.time.isValid() && gps.time.minute() > update_min + BROADCAST_TIMEOUT
-			&& gps.location.isValid() && gps.location.isUpdated())
+		if(gps.time.isValid()
+			&& (gps.time.minute() == update_min || update_min == -1)
+			&& gps.location.isValid())
 		{
 			APRSMessage msg;
 			msg.setSource("OE5BPA-9");
 			msg.setDestination("APRS");
 			char body_char[50];
-			sprintf(body_char, "/%s>%s&LoRa APRS Tracker test", create_lat_aprs(gps.location.rawLat()).c_str(), create_long_aprs(gps.location.rawLng()).c_str());
+			sprintf(body_char, "=%s/%s>LoRa APRS Tracker test", create_lat_aprs(gps.location.rawLat()).c_str(), create_long_aprs(gps.location.rawLng()).c_str());
 			msg.getAPRSBody()->setData(String(body_char));
-			Serial.println(msg.encode());
-			//LoRa.beginPacket();
-			//LoRa.write((const uint8_t*)buffer.c_str(), buffer.length());
-			//LoRa.endPacket();
-			update_min = gps.time.minute();
+			String data = msg.encode();
+			Serial.println(data);
+			LoRa.beginPacket();
+			LoRa.write((const uint8_t *)data.c_str(), data.length());
+			LoRa.endPacket();
+			update_min = (gps.time.minute() + BROADCAST_TIMEOUT) % 60;
 		}
 		show_display("OE5BPA",
 			String("Time: ") + gps.time.hour() + String(":") + gps.time.minute() + String(":") + gps.time.second(),
@@ -90,15 +90,6 @@ void loop()
 	{
 		Serial.println("No GPS detected!");
 	}
-	
-	/*String buffer = "OE5BPA-7>APRS:=4819.82NI01418.68E&LoRa Tracker test\n";
-	LoRa.beginPacket();
-	LoRa.write((const uint8_t*)buffer.c_str(), buffer.length());
-	LoRa.endPacket();
-	Serial.print("[INFO] Package sent: ");
-	Serial.println(buffer);
-	show_display("OE5BPA", "Package sent", buffer);
-	delay(30000);*/
 }
 
 void setup_lora()
