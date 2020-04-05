@@ -17,6 +17,7 @@ String create_long_aprs(RawDegrees lng);
 HardwareSerial ss(1);
 AXP20X_Class axp;
 TinyGPSPlus gps;
+int next_update = -1;
 
 void setup()
 {
