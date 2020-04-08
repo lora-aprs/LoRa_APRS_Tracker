@@ -114,6 +114,8 @@ void setup_lora()
 	LoRa.setSignalBandwidth(125E3);
 	LoRa.setCodingRate4(5);
 	LoRa.enableCrc();
+
+	LoRa.setTxPower(20);
 	Serial.println("[INFO] LoRa init done!");
 	show_display("INFO", "LoRa init done!", 2000);
 }
