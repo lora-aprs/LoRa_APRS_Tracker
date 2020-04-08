@@ -74,6 +74,7 @@ void loop()
 			msg.getAPRSBody()->setData(String(body_char));
 			String data = msg.encode();
 			Serial.println(data);
+			show_display("<< TX >>", data);
 			LoRa.beginPacket();
 			LoRa.write((const uint8_t *)data.c_str(), data.length());
 			LoRa.endPacket();
