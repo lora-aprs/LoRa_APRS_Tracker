@@ -35,6 +35,6 @@ Change your configuration in settings.h
 
 The complete configuration should move to [IotWebConf](https://github.com/prampec/IotWebConf).
 
-## Lora iGate
+## LoRa iGate
 
 Look at my other project: a [LoRa iGate](https://github.com/peterus/LoRa_APRS_iGate)
