@@ -6,7 +6,7 @@
 #include "display.h"
 #include "settings.h"
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST);
+Adafruit_SSD1306 display(128, 64, &Wire, OLED_RST);
 
 void setup_display()
 {
