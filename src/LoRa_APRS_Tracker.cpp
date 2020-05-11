@@ -87,6 +87,11 @@ void loop()
 			Serial.println(data);
 			show_display("<< TX >>", data);
 			LoRa.beginPacket();
+			// Header:
+			LoRa.write('<');
+			LoRa.write(0xFF);
+			LoRa.write(0x01);
+			// APRS Data:
 			LoRa.write((const uint8_t *)data.c_str(), data.length());
 			LoRa.endPacket();
 			update_min = (gps.time.minute() + BROADCAST_TIMEOUT) % 60;
@@ -109,8 +114,8 @@ void loop()
 void setup_lora()
 {
 	Serial.println("[INFO] Set SPI pins!");
-	SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_SS);
-	LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
+	SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_CS);
+	LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
 	Serial.println("[INFO] Set LoRa pins!");
 
 	long freq = 433775000;
