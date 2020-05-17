@@ -10,22 +10,19 @@
 #include "display.h"
 
 #if !defined(ARDUINO_T_Beam_V0_7)
-#define RXPin 12
-#define TXPin 34
-#else
-#define RXPin 15
-#define TXPin 12
+void setup_axp();
+AXP20X_Class axp;
 #endif
 
-void setup_lora();
+HardwareSerial ss(1);
+TinyGPSPlus gps;
+void setup_gps();
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
 
-HardwareSerial ss(1);
-#if !defined(ARDUINO_T_Beam_V0_7)
-AXP20X_Class axp;
-#endif
-TinyGPSPlus gps;
+void setup_lora();
+
+
 int next_update = -1;
 
 void setup()
@@ -38,27 +35,13 @@ void setup()
 	show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
 
 #if !defined(ARDUINO_T_Beam_V0_7)
-	Wire.begin(SDA, SCL);
-	if (!axp.begin(Wire, AXP192_SLAVE_ADDRESS))
-	{
-		Serial.println("LoRa-APRS / Init / AXP192 Begin PASS");
-	} else {
-		Serial.println("LoRa-APRS / Init / AXP192 Begin FAIL");
-	}
-	axp.setPowerOutPut(AXP192_LDO2, AXP202_ON);  // LORA
-	axp.setPowerOutPut(AXP192_LDO3, AXP202_ON);  // GPS
-	axp.setPowerOutPut(AXP192_DCDC1, AXP202_ON); // OLED
-	axp.setDCDC1Voltage(3300);
+	setup_axp();
 #endif
-
-	ss.begin(9600, SERIAL_8N1, TXPin, RXPin);
-
+	setup_gps();
 	setup_lora();
 	
 	delay(500);
 }
-
-#define BROADCAST_TIMEOUT 1
 
 void loop()
 {
@@ -78,10 +61,10 @@ void loop()
 			&& gps.location.isUpdated())
 		{
 			APRSMessage msg;
-			msg.setSource("OE5BPA-9");
-			msg.setDestination("APRS");
+			msg.setSource(CALL);
+			msg.setDestination("APLT0");
 			char body_char[50];
-			sprintf(body_char, "=%s/%s>LoRa APRS Tracker test", create_lat_aprs(gps.location.rawLat()).c_str(), create_long_aprs(gps.location.rawLng()).c_str());
+			sprintf(body_char, "=%s/%s>%s", create_lat_aprs(gps.location.rawLat()).c_str(), create_long_aprs(gps.location.rawLng()).c_str(), BEACON_MESSAGE);
 			msg.getAPRSBody()->setData(String(body_char));
 			String data = msg.encode();
 			Serial.println(data);
@@ -94,9 +77,9 @@ void loop()
 			// APRS Data:
 			LoRa.write((const uint8_t *)data.c_str(), data.length());
 			LoRa.endPacket();
-			update_min = (gps.time.minute() + BROADCAST_TIMEOUT) % 60;
+			update_min = (gps.time.minute() + BEACON_TIMEOUT) % 60;
 		}
-		show_display("OE5BPA",
+		show_display(CALL,
 			String("Time: ") + gps.time.hour() + String(":") + gps.time.minute() + String(":") + gps.time.second(),
 			String("Date: ") + gps.date.day()  + String(".") + gps.date.month()  + String(".") + gps.date.year(),
 			String("Sat's: ") + gps.satellites.value() + String(" HDOP: ") + gps.hdop.hdop(),
@@ -110,6 +93,23 @@ void loop()
 		Serial.println("No GPS detected!");
 	}
 }
+
+#if !defined(ARDUINO_T_Beam_V0_7)
+void setup_axp()
+{
+	Wire.begin(SDA, SCL);
+	if (!axp.begin(Wire, AXP192_SLAVE_ADDRESS))
+	{
+		Serial.println("LoRa-APRS / Init / AXP192 Begin PASS");
+	} else {
+		Serial.println("LoRa-APRS / Init / AXP192 Begin FAIL");
+	}
+	axp.setPowerOutPut(AXP192_LDO2, AXP202_ON);  // LORA
+	axp.setPowerOutPut(AXP192_LDO3, AXP202_ON);  // GPS
+	axp.setPowerOutPut(AXP192_DCDC1, AXP202_ON); // OLED
+	axp.setDCDC1Voltage(3300);
+}
+#endif
 
 void setup_lora()
 {
@@ -134,6 +134,18 @@ void setup_lora()
 	LoRa.setTxPower(20);
 	Serial.println("[INFO] LoRa init done!");
 	show_display("INFO", "LoRa init done!", 2000);
+}
+
+void setup_gps()
+{
+#if !defined(ARDUINO_T_Beam_V0_7)
+	#define GPS_RX 12
+	#define GPS_TX 34
+#else
+	#define GPS_RX 15
+	#define GPS_TX 12
+#endif
+	ss.begin(9600, SERIAL_8N1, GPS_TX, GPS_RX);
 }
 
 String create_lat_aprs(RawDegrees lat)
