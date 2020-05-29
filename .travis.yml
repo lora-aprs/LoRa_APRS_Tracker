@@ -9,4 +9,5 @@ install:
     - pip install -U platformio
     - platformio update
 script:
+    - platformio check --fail-on-defect low --fail-on-defect medium --fail-on-defect high
     - platformio run
