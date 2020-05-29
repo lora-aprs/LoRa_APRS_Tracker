@@ -47,7 +47,6 @@ void setup()
 // cppcheck-suppress unusedFunction
 void loop()
 {
-	static int update_min = -1;
 	while (ss.available() > 0)
 	{
 		char c = ss.read();
@@ -57,6 +56,7 @@ void loop()
 
 	if(gps.time.isUpdated())
 	{
+		static int update_min = -1;
 		if(gps.time.isValid()
 			&& (gps.time.minute() == update_min || update_min == -1)
 			&& gps.location.isValid()
