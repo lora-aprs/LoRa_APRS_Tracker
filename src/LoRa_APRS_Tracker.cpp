@@ -25,6 +25,7 @@ void setup_lora();
 
 int next_update = -1;
 
+// cppcheck-suppress unusedFunction
 void setup()
 {
 	Serial.begin(115200);
@@ -43,6 +44,7 @@ void setup()
 	delay(500);
 }
 
+// cppcheck-suppress unusedFunction
 void loop()
 {
 	static int update_min = -1;
