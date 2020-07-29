@@ -44,6 +44,15 @@ void setup()
 	delay(500);
 }
 
+String toDoubleInt(int number)
+{
+	if(number < 10)
+	{
+		return "0" + String(number);
+	}
+	return String(number);
+}
+
 // cppcheck-suppress unusedFunction
 void loop()
 {
@@ -54,41 +63,55 @@ void loop()
 		gps.encode(c);
 	}
 
+	static unsigned long next_update = -1;
+	static bool send_update = true;
+
+	bool gps_time_update = false;
 	if(gps.time.isUpdated())
 	{
-		static int update_min = -1;
-		if(gps.time.isValid()
-			&& (gps.time.minute() == update_min || update_min == -1)
-			&& gps.location.isValid()
-			&& gps.location.isUpdated())
-		{
-			APRSMessage msg;
-			msg.setSource(CALL);
-			msg.setDestination("APLT0");
-			char body_char[50];
-			sprintf(body_char, "=%s/%s>%s", create_lat_aprs(gps.location.rawLat()).c_str(), create_long_aprs(gps.location.rawLng()).c_str(), BEACON_MESSAGE);
-			msg.getAPRSBody()->setData(String(body_char));
-			String data = msg.encode();
-			Serial.println(data);
-			show_display("<< TX >>", data);
-			LoRa.beginPacket();
-			// Header:
-			LoRa.write('<');
-			LoRa.write(0xFF);
-			LoRa.write(0x01);
-			// APRS Data:
-			LoRa.write((const uint8_t *)data.c_str(), data.length());
-			LoRa.endPacket();
-			update_min = (gps.time.minute() + BEACON_TIMEOUT) % 60;
-		}
+		gps_time_update = true;
+	}
+
+	if(gps.time.isValid() && (next_update <= gps.time.minute() || next_update == -1))
+	{
+		send_update = true;
+	}
+
+	if(send_update && gps.location.isValid() && gps.location.isUpdated())
+	{
+		next_update = (gps.time.minute() + BEACON_TIMEOUT) % 60;
+		send_update = false;
+
+		APRSMessage msg;
+		msg.setSource(CALL);
+		msg.setDestination("APLT0");
+		String lat = create_lat_aprs(gps.location.rawLat());
+		String lng = create_long_aprs(gps.location.rawLng());
+		msg.getAPRSBody()->setData(String("=") + lat + "/" + lng + ">" + BEACON_MESSAGE);
+		String data = msg.encode();
+		Serial.println(data);
+		show_display("<< TX >>", data);
+		LoRa.beginPacket();
+		// Header:
+		LoRa.write('<');
+		LoRa.write(0xFF);
+		LoRa.write(0x01);
+		// APRS Data:
+		LoRa.write((const uint8_t *)data.c_str(), data.length());
+		LoRa.endPacket();
+	}
+
+	if(gps_time_update)
+	{
 		show_display(CALL,
-			String("Time: ") + gps.time.hour() + String(":") + gps.time.minute() + String(":") + gps.time.second(),
-			String("Date: ") + gps.date.day()  + String(".") + gps.date.month()  + String(".") + gps.date.year(),
+			String("Time: ") + toDoubleInt(gps.time.hour()) + String(":") + toDoubleInt(gps.time.minute()) + String(":") + toDoubleInt(gps.time.second()),
+			String("Date: ") + toDoubleInt(gps.date.day())  + String(".") + toDoubleInt(gps.date.month())  + String(".") + gps.date.year(),
 			String("Sat's: ") + gps.satellites.value() + String(" HDOP: ") + gps.hdop.hdop(),
 			String("Lat: ") + gps.location.lat() + String(" Lng: ") + gps.location.lng(),
 			String("") + create_lat_aprs(gps.location.rawLat()) + String(" ") + create_long_aprs(gps.location.rawLng())
 			);
 	}
+
 
 	if(millis() > 5000 && gps.charsProcessed() < 10)
 	{
