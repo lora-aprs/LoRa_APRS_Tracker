@@ -22,9 +22,6 @@ String create_long_aprs(RawDegrees lng);
 
 void setup_lora();
 
-
-int next_update = -1;
-
 // cppcheck-suppress unusedFunction
 void setup()
 {
