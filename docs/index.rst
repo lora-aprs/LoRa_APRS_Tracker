@@ -6,9 +6,9 @@
 Welcome to LoRa APRS Tracker's documentation!
 =============================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+#.. toctree::
+#   :maxdepth: 2
+#   :caption: Contents:
 
 
 
