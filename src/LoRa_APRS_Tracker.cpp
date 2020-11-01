@@ -8,6 +8,7 @@
 
 #include "settings.h"
 #include "display.h"
+#include <TimeLib.h>
 
 #if !defined(ARDUINO_T_Beam_V0_7)
 void setup_axp();
@@ -21,6 +22,10 @@ String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
 
 void setup_lora();
+
+static time_t nowTimeStamp = -1;
+static time_t nextUpdateTimeStamp = -1;
+static bool send_update = true;
 
 // cppcheck-suppress unusedFunction
 void setup()
@@ -60,23 +65,26 @@ void loop()
 		gps.encode(c);
 	}
 
-	static unsigned long next_update = -1;
-	static bool send_update = true;
-
 	bool gps_time_update = false;
 	if(gps.time.isUpdated())
 	{
 		gps_time_update = true;
 	}
 
-	if(gps.time.isValid() && (next_update <= gps.time.minute() || next_update == -1))
+	if(gps.time.isValid())
 	{
-		send_update = true;
+		setTime(gps.time.hour(),gps.time.minute(),gps.time.second(),gps.date.day(),gps.date.month(),gps.date.year());
+		nowTimeStamp = now();
+
+		if (nextUpdateTimeStamp <= nowTimeStamp || nextUpdateTimeStamp == -1)
+		{
+			send_update = true;
+		}
 	}
 
 	if(send_update && gps.location.isValid() && gps.location.isUpdated())
 	{
-		next_update = (gps.time.minute() + BEACON_TIMEOUT) % 60;
+		nextUpdateTimeStamp = nowTimeStamp + (BEACON_TIMEOUT * 60);
 		send_update = false;
 
 		APRSMessage msg;
