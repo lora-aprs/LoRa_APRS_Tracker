@@ -20,6 +20,7 @@ Keep in minde: you need a 433MHz version!
 ### How to compile
 
 The best success is to use PlatformIO. Go to https://platformio.org/ and download the IDE. Just open the folder and you can compile the Firmware.
+Here is a [Video](https://www.youtube.com/watch?v=clIlTEFbWLk&feature=emb_logo) tutorial in german language how to install the software. 
 
 ### Dependencies
 
