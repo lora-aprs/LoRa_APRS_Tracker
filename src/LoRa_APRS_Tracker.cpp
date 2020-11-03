@@ -5,6 +5,7 @@
 
 #include "settings.h"
 #include "display.h"
+#include "pins.h"
 
 #ifdef TTGO_T_Beam_V1_0
 #include <axp20x.h>
