@@ -1,15 +1,13 @@
 #include <Arduino.h>
 #include <LoRa.h>
 #include <APRS-Decoder.h>
-#if !defined(ARDUINO_T_Beam_V0_7)
-#include <axp20x.h>
-#endif
 #include <TinyGPS++.h>
 
 #include "settings.h"
 #include "display.h"
 
-#if !defined(ARDUINO_T_Beam_V0_7)
+#ifdef TTGO_T_Beam_V1_0
+#include <axp20x.h>
 void setup_axp();
 AXP20X_Class axp;
 #endif
@@ -32,7 +30,7 @@ void setup()
 	Serial.println("[INFO] LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
 	show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
 
-#if !defined(ARDUINO_T_Beam_V0_7)
+#ifdef TTGO_T_Beam_V1_0
 	setup_axp();
 #endif
 	setup_gps();
@@ -116,7 +114,7 @@ void loop()
 	}
 }
 
-#if !defined(ARDUINO_T_Beam_V0_7)
+#ifdef TTGO_T_Beam_V1_0
 void setup_axp()
 {
 	Wire.begin(SDA, SCL);
@@ -160,13 +158,6 @@ void setup_lora()
 
 void setup_gps()
 {
-#if !defined(ARDUINO_T_Beam_V0_7)
-	#define GPS_RX 12
-	#define GPS_TX 34
-#else
-	#define GPS_RX 15
-	#define GPS_TX 12
-#endif
 	ss.begin(9600, SERIAL_8N1, GPS_TX, GPS_RX);
 }
 
