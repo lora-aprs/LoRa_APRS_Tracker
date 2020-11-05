@@ -93,7 +93,7 @@ void loop()
 		msg.setDestination("APLT0");
 		String lat = create_lat_aprs(gps.location.rawLat());
 		String lng = create_long_aprs(gps.location.rawLng());
-		msg.getAPRSBody()->setData(String("=") + lat + "/" + lng + ">" + BEACON_MESSAGE);
+		msg.getAPRSBody()->setData(String("=") + lat + SYMBOL_OVERLAY + lng + SYMBOL_CODE + BEACON_MESSAGE);
 		String data = msg.encode();
 		Serial.println(data);
 		show_display("<< TX >>", data);
