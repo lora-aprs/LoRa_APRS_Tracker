@@ -2,8 +2,8 @@
 #ifndef SETTINGS_H_
 #define SETTINGS_H_
 
-#define CALL "OE5BPA-7"
-#define BEACON_MESSAGE "LoRa APRS Tracker test"
-#define BEACON_TIMEOUT 1
+#define CALL "DK7JL-7"
+#define BEACON_MESSAGE "TTGO T-Beam v1.1 LoRa APRS Tracker"
+#define BEACON_TIMEOUT 10
 
 #endif

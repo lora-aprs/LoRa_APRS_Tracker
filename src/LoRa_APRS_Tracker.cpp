@@ -23,7 +23,8 @@ String create_long_aprs(RawDegrees lng);
 void setup_lora();
 
 static time_t nowTimeStamp = -1;
-static time_t nextUpdateTimeStamp = -1;
+static time_t nextBeaconTimeStamp = -1;
+static tmElements_t nextBeaconStruct;
 static bool send_update = true;
 
 // cppcheck-suppress unusedFunction
@@ -75,7 +76,7 @@ void loop()
 		setTime(gps.time.hour(),gps.time.minute(),gps.time.second(),gps.date.day(),gps.date.month(),gps.date.year());
 		nowTimeStamp = now();
 
-		if (nextUpdateTimeStamp <= nowTimeStamp || nextUpdateTimeStamp == -1)
+		if (nextBeaconTimeStamp <= nowTimeStamp || nextBeaconTimeStamp == -1)
 		{
 			send_update = true;
 		}
@@ -83,7 +84,8 @@ void loop()
 
 	if(send_update && gps.location.isValid() && gps.location.isUpdated())
 	{
-		nextUpdateTimeStamp = nowTimeStamp + (BEACON_TIMEOUT * 60);
+		nextBeaconTimeStamp = nowTimeStamp + (BEACON_TIMEOUT * 60);
+		breakTime(nextBeaconTimeStamp, nextBeaconStruct);
 		send_update = false;
 
 		APRSMessage msg;
@@ -107,11 +109,31 @@ void loop()
 
 	if(gps_time_update)
 	{
+		#ifdef TTGO_T_Beam_V1_0
+		char batteryVoltage[6];
+		dtostrf(axp.getBattVoltage()/1000, 1, 2, batteryVoltage);
+
+		char batteryChargeCurrent[6];
+		String batteryIndicator;
+		if(axp.isChargeing())
+		{
+			dtostrf(axp.getBattChargeCurrent(), 3, 0, batteryChargeCurrent);
+			batteryIndicator = "+";
+		}
+		else
+		{
+			dtostrf(axp.getBattDischargeCurrent(), 3, 0, batteryChargeCurrent);
+			batteryIndicator = "-";
+		}
+		#endif
+
 		show_display(CALL,
-			String("Time: ") + toDoubleInt(gps.time.hour()) + String(":") + toDoubleInt(gps.time.minute()) + String(":") + toDoubleInt(gps.time.second()),
-			String("Date: ") + toDoubleInt(gps.date.day())  + String(".") + toDoubleInt(gps.date.month())  + String(".") + gps.date.year(),
-			String("Sat's: ") + gps.satellites.value() + String(" HDOP: ") + gps.hdop.hdop(),
-			String("Lat: ") + gps.location.lat() + String(" Lng: ") + gps.location.lng(),
+			toDoubleInt(gps.date.day())  + String(".") + toDoubleInt(gps.date.month())  + String(".") + gps.date.year() + String(" ") + toDoubleInt(gps.time.hour()) + String(":") + toDoubleInt(gps.time.minute()) + String(":") + toDoubleInt(gps.time.second()),
+			String("Sats: ") + gps.satellites.value() + String(" HDOP: ") + gps.hdop.hdop(),
+			String("Nxt Bcn: ") + toDoubleInt(nextBeaconStruct.Hour) + String(":") + toDoubleInt(nextBeaconStruct.Minute),
+			#ifdef TTGO_T_Beam_V1_0
+			String("Bat: ") + batteryVoltage + String("V ") + batteryIndicator + batteryChargeCurrent + String("mA"),
+			#endif
 			String("") + create_lat_aprs(gps.location.rawLat()) + String(" ") + create_long_aprs(gps.location.rawLng())
 			);
 	}
@@ -137,6 +159,11 @@ void setup_axp()
 	axp.setPowerOutPut(AXP192_LDO3, AXP202_ON);  // GPS
 	axp.setPowerOutPut(AXP192_DCDC1, AXP202_ON); // OLED
 	axp.setDCDC1Voltage(3300);
+
+	/*Enable AXP ADC function*/
+    axp.adc1Enable(AXP202_BATT_CUR_ADC1 |
+                   AXP202_BATT_VOL_ADC1,
+                   true);
 }
 #endif
 
