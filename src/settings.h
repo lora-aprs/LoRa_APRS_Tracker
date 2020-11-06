@@ -5,5 +5,7 @@
 #define CALL "OE5BPA-7"
 #define BEACON_MESSAGE "LoRa APRS Tracker test"
 #define BEACON_TIMEOUT 1
+#define SYMBOL_CODE ">"
+#define SYMBOL_OVERLAY "/"
 
 #endif
