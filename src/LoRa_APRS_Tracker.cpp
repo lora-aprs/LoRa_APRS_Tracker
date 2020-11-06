@@ -134,7 +134,6 @@ void loop()
 			#ifdef TTGO_T_Beam_V1_0
 			String("Bat: ") + batteryVoltage + String("V ") + batteryIndicator + batteryChargeCurrent + String("mA"),
 			#endif
-			String("") + create_lat_aprs(gps.location.rawLat()) + String(" ") + create_long_aprs(gps.location.rawLng())
 			);
 	}
 
