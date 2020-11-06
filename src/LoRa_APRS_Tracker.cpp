@@ -130,9 +130,9 @@ void loop()
 		show_display(CALL,
 			toDoubleInt(gps.date.day())  + String(".") + toDoubleInt(gps.date.month())  + String(".") + gps.date.year() + String(" ") + toDoubleInt(gps.time.hour()) + String(":") + toDoubleInt(gps.time.minute()) + String(":") + toDoubleInt(gps.time.second()),
 			String("Sats: ") + gps.satellites.value() + String(" HDOP: ") + gps.hdop.hdop(),
-			String("Nxt Bcn: ") + toDoubleInt(nextBeaconStruct.Hour) + String(":") + toDoubleInt(nextBeaconStruct.Minute),
+			String("Nxt Bcn: ") + toDoubleInt(nextBeaconStruct.Hour) + String(":") + toDoubleInt(nextBeaconStruct.Minute)
 			#ifdef TTGO_T_Beam_V1_0
-			String("Bat: ") + batteryVoltage + String("V ") + batteryIndicator + batteryChargeCurrent + String("mA"),
+			, String("Bat: ") + batteryVoltage + String("V ") + batteryIndicator + batteryChargeCurrent + String("mA")
 			#endif
 			);
 	}
