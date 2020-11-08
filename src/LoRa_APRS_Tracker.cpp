@@ -2,25 +2,25 @@
 #include <LoRa.h>
 #include <APRS-Decoder.h>
 #include <TinyGPS++.h>
+#include <TimeLib.h>
+#include <WiFi.h>
 
 #include "settings.h"
 #include "display.h"
 #include "pins.h"
-#include <TimeLib.h>
+#include "power_management.h"
 
-#ifdef TTGO_T_Beam_V1_0
-#include <axp20x.h>
-void setup_axp();
-AXP20X_Class axp;
-#endif
+#include "power_management.h"
+PowerManagement powerManagement;
 
 HardwareSerial ss(1);
 TinyGPSPlus gps;
+
+void setup_lora();
 void setup_gps();
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
-
-void setup_lora();
+String createNowStringTime();
 
 static time_t nowTimeStamp = -1;
 static time_t nextBeaconTimeStamp = -1;
@@ -31,19 +31,36 @@ static bool send_update = true;
 void setup()
 {
 	Serial.begin(115200);
-	setup_display();
+
+#ifdef TTGO_T_Beam_V1_0
+	Wire.begin(SDA, SCL);
+	if (!powerManagement.begin(Wire))
+	{
+		Serial.println("[INFO] AXP192 init done!");
+	}
+	else
+	{
+		Serial.println("[ERROR] AXP192 init failed!");
+	}
+	powerManagement.activateLoRa();
+	powerManagement.activateOLED();
+	powerManagement.activateGPS();
+#endif
 	
 	delay(500);
 	Serial.println("[INFO] LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
+	setup_display();
 	show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
 
-#ifdef TTGO_T_Beam_V1_0
-	setup_axp();
-#endif
 	setup_gps();
 	setup_lora();
-	
+
+	// make sure wifi and bt is off as we don't need it:
+	WiFi.mode(WIFI_OFF);
+	btStop();
+
 	delay(500);
+	Serial.println("[INFO] setup done...");
 }
 
 String toDoubleInt(int number)
@@ -65,11 +82,7 @@ void loop()
 		gps.encode(c);
 	}
 
-	bool gps_time_update = false;
-	if(gps.time.isUpdated())
-	{
-		gps_time_update = true;
-	}
+	bool gps_time_update = gps.time.isUpdated();
 
 	if(gps.time.isValid())
 	{
@@ -84,7 +97,7 @@ void loop()
 
 	if(send_update && gps.location.isValid() && gps.location.isUpdated())
 	{
-		nextBeaconTimeStamp = nowTimeStamp + (BEACON_TIMEOUT * 60);
+		nextBeaconTimeStamp = nowTimeStamp + (BEACON_TIMEOUT * SECS_PER_MIN);
 		breakTime(nextBeaconTimeStamp, nextBeaconStruct);
 		send_update = false;
 
@@ -109,62 +122,26 @@ void loop()
 
 	if(gps_time_update)
 	{
-		#ifdef TTGO_T_Beam_V1_0
-		char batteryVoltage[6];
-		dtostrf(axp.getBattVoltage()/1000, 1, 2, batteryVoltage);
-
-		char batteryChargeCurrent[6];
-		String batteryIndicator;
-		if(axp.isChargeing())
-		{
-			dtostrf(axp.getBattChargeCurrent(), 3, 0, batteryChargeCurrent);
-			batteryIndicator = "+";
-		}
-		else
-		{
-			dtostrf(axp.getBattDischargeCurrent(), 3, 0, batteryChargeCurrent);
-			batteryIndicator = "-";
-		}
-		#endif
+#ifdef TTGO_T_Beam_V1_0
+		String batteryVoltage(powerManagement.getBatteryVoltage(), 2);
+		String batteryChargeCurrent(powerManagement.getBatteryChargeDischargeCurrent(), 0);
+#endif
 
 		show_display(CALL,
-			toDoubleInt(gps.date.day())  + String(".") + toDoubleInt(gps.date.month())  + String(".") + gps.date.year() + String(" ") + toDoubleInt(gps.time.hour()) + String(":") + toDoubleInt(gps.time.minute()) + String(":") + toDoubleInt(gps.time.second()),
+			createNowStringTime(),
 			String("Sats: ") + gps.satellites.value() + String(" HDOP: ") + gps.hdop.hdop(),
 			String("Nxt Bcn: ") + toDoubleInt(nextBeaconStruct.Hour) + String(":") + toDoubleInt(nextBeaconStruct.Minute)
-			#ifdef TTGO_T_Beam_V1_0
-			, String("Bat: ") + batteryVoltage + String("V ") + batteryIndicator + batteryChargeCurrent + String("mA")
-			#endif
+#ifdef TTGO_T_Beam_V1_0
+			, String("Bat: ") + batteryVoltage + String("V ") + batteryChargeCurrent + String("mA")
+#endif
 			);
 	}
-
 
 	if(millis() > 5000 && gps.charsProcessed() < 10)
 	{
 		Serial.println("No GPS detected!");
 	}
 }
-
-#ifdef TTGO_T_Beam_V1_0
-void setup_axp()
-{
-	Wire.begin(SDA, SCL);
-	if (!axp.begin(Wire, AXP192_SLAVE_ADDRESS))
-	{
-		Serial.println("LoRa-APRS / Init / AXP192 Begin PASS");
-	} else {
-		Serial.println("LoRa-APRS / Init / AXP192 Begin FAIL");
-	}
-	axp.setPowerOutPut(AXP192_LDO2, AXP202_ON);  // LORA
-	axp.setPowerOutPut(AXP192_LDO3, AXP202_ON);  // GPS
-	axp.setPowerOutPut(AXP192_DCDC1, AXP202_ON); // OLED
-	axp.setDCDC1Voltage(3300);
-
-	/*Enable AXP ADC function*/
-    axp.adc1Enable(AXP202_BATT_CUR_ADC1 |
-                   AXP202_BATT_VOL_ADC1,
-                   true);
-}
-#endif
 
 void setup_lora()
 {
@@ -220,4 +197,11 @@ String create_long_aprs(RawDegrees lng)
 	sprintf(str, "%03d%05.2f%c", lng.deg, lng.billionths / 1000000000.0 * 60.0, e_w);
 	String lng_str(str);
 	return lng_str;
+}
+
+String createNowStringTime()
+{
+	char line[30];
+	sprintf(line, "%02d.%02d.%04d %02d:%02d:%02d", day(), month(), year(), hour(), minute(), second());
+	return String(line);
 }
