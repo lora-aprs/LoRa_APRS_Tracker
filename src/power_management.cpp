@@ -13,10 +13,6 @@ bool PowerManagement::begin(TwoWire & port)
 	if(!result)
 	{
 		axp.setDCDC1Voltage(3300);
-		// Enable AXP ADC function
-		axp.adc1Enable(AXP202_BATT_CUR_ADC1 |
-						AXP202_BATT_VOL_ADC1,
-						true);
 	}
 	return result;
 }
@@ -55,6 +51,21 @@ void PowerManagement::activateOLED()
 void PowerManagement::decativateOLED()
 {
 	axp.setPowerOutPut(AXP192_DCDC1, AXP202_OFF);
+}
+
+
+void PowerManagement::activateMeasurement()
+{
+	axp.adc1Enable(AXP202_BATT_CUR_ADC1 |
+					AXP202_BATT_VOL_ADC1,
+					true);
+}
+
+void PowerManagement::deactivateMeasurement()
+{
+	axp.adc1Enable(AXP202_BATT_CUR_ADC1 |
+					AXP202_BATT_VOL_ADC1,
+					false);
 }
 
 double PowerManagement::getBatteryVoltage()

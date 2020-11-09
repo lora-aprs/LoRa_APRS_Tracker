@@ -45,6 +45,7 @@ void setup()
 	powerManagement.activateLoRa();
 	powerManagement.activateOLED();
 	powerManagement.activateGPS();
+	powerManagement.activateMeasurement();
 #endif
 	
 	delay(500);
@@ -97,8 +98,7 @@ void loop()
 
 	if(send_update && gps.location.isValid() && gps.location.isUpdated())
 	{
-		nextBeaconTimeStamp = nowTimeStamp + (BEACON_TIMEOUT * SECS_PER_MIN);
-		breakTime(nextBeaconTimeStamp, nextBeaconStruct);
+		powerManagement.deactivateMeasurement();
 		send_update = false;
 
 		APRSMessage msg;
@@ -118,6 +118,7 @@ void loop()
 		// APRS Data:
 		LoRa.write((const uint8_t *)data.c_str(), data.length());
 		LoRa.endPacket();
+		powerManagement.activateMeasurement();
 	}
 
 	if(gps_time_update)
