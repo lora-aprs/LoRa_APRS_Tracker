@@ -20,11 +20,9 @@ void setup_lora();
 void setup_gps();
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
-String createNowStringTime();
+String createDateString(time_t t);
+String createTimeString(time_t t);
 
-static time_t nowTimeStamp = -1;
-static time_t nextBeaconTimeStamp = -1;
-static tmElements_t nextBeaconStruct;
 static bool send_update = true;
 
 // cppcheck-suppress unusedFunction
@@ -64,15 +62,6 @@ void setup()
 	Serial.println("[INFO] setup done...");
 }
 
-String toDoubleInt(int number)
-{
-	if(number < 10)
-	{
-		return "0" + String(number);
-	}
-	return String(number);
-}
-
 // cppcheck-suppress unusedFunction
 void loop()
 {
@@ -84,13 +73,13 @@ void loop()
 	}
 
 	bool gps_time_update = gps.time.isUpdated();
+	static time_t nextBeaconTimeStamp = -1;
 
 	if(gps.time.isValid())
 	{
 		setTime(gps.time.hour(),gps.time.minute(),gps.time.second(),gps.date.day(),gps.date.month(),gps.date.year());
-		nowTimeStamp = now();
 
-		if (nextBeaconTimeStamp <= nowTimeStamp || nextBeaconTimeStamp == -1)
+		if (nextBeaconTimeStamp <= now() || nextBeaconTimeStamp == -1)
 		{
 			send_update = true;
 		}
@@ -99,6 +88,7 @@ void loop()
 	if(send_update && gps.location.isValid() && gps.location.isUpdated())
 	{
 		powerManagement.deactivateMeasurement();
+		nextBeaconTimeStamp = now() + (BEACON_TIMEOUT * SECS_PER_MIN);
 		send_update = false;
 
 		APRSMessage msg;
@@ -129,11 +119,11 @@ void loop()
 #endif
 
 		show_display(CALL,
-			createNowStringTime(),
-			String("Sats: ") + gps.satellites.value() + String(" HDOP: ") + gps.hdop.hdop(),
-			String("Nxt Bcn: ") + toDoubleInt(nextBeaconStruct.Hour) + String(":") + toDoubleInt(nextBeaconStruct.Minute)
+			createDateString(now()) + " " + createTimeString(now()),
+			String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(),
+			String("Nxt Bcn: ") + createTimeString(nextBeaconTimeStamp)
 #ifdef TTGO_T_Beam_V1_0
-			, String("Bat: ") + batteryVoltage + String("V ") + batteryChargeCurrent + String("mA")
+			, String("Bat: ") + batteryVoltage + "V " + batteryChargeCurrent + "mA"
 #endif
 			);
 	}
@@ -200,9 +190,20 @@ String create_long_aprs(RawDegrees lng)
 	return lng_str;
 }
 
-String createNowStringTime()
+String createDateString(time_t t)
 {
 	char line[30];
-	sprintf(line, "%02d.%02d.%04d %02d:%02d:%02d", day(), month(), year(), hour(), minute(), second());
+	sprintf(line, "%02d.%02d.%04d", day(t), month(t), year(t));
+	return String(line);
+}
+
+String createTimeString(time_t t)
+{
+	if(t == -1)
+	{
+		return String("00:00:00");
+	}
+	char line[30];
+	sprintf(line, "%02d:%02d:%02d", hour(t), minute(t), second(t));
 	return String(line);
 }
