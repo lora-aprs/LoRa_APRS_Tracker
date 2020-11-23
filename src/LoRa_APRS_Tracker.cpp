@@ -25,6 +25,14 @@ String createTimeString(time_t t);
 
 static bool send_update = true;
 
+// Initial lat/lng pos, change to your base station coordnates
+float lastTxLat = 0;
+float lastTxLng = 0;
+float lastTxdistance;
+unsigned long txInterval = 60000L;  // Initial 60 secs internal
+int previousHeading, currentHeading, headingDelta, headingTresh = 0;
+int lastTxTime = millis();
+
 // cppcheck-suppress unusedFunction
 void setup()
 {
@@ -51,6 +59,11 @@ void setup()
 	setup_display();
 	show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
 
+#ifdef SB_ACTIVE
+	Serial.println("[INFO] Smart Beaconing Active");
+	show_display("DJ1AN", "Smart Beaconing","Active", 1000);
+#endif
+
 	setup_gps();
 	setup_lora();
 
@@ -65,14 +78,24 @@ void setup()
 // cppcheck-suppress unusedFunction
 void loop()
 {
+#if !defined(DEBUGMODE)
 	while (ss.available() > 0)
 	{
 		char c = ss.read();
 		//Serial.print(c);
 		gps.encode(c);
 	}
+#else
+	while (Serial.available() > 0)
+	{
+		char c = Serial.read();
+		//Serial.print(c);
+		gps.encode(c);
+	}
+#endif
 
 	bool gps_time_update = gps.time.isUpdated();
+	bool gps_loc_update = gps.location.isUpdated();
 	static time_t nextBeaconTimeStamp = -1;
 
 	if(gps.time.isValid())
@@ -83,9 +106,55 @@ void loop()
 		{
 			send_update = true;
 		}
+
 	}
 
-	if(send_update && gps.location.isValid() && gps.location.isUpdated())
+#ifdef SB_ACTIVE
+	send_update = false;
+  	if ( gps_loc_update )
+	{
+    	lastTxdistance = TinyGPSPlus::distanceBetween(
+        	gps.location.lat(),
+       		gps.location.lng(),
+        	lastTxLat,
+        	lastTxLng
+		);
+          
+   		// Get headings and heading delta
+    	currentHeading = (int) gps.course.deg();
+    	if ( currentHeading >= 180 )
+		{
+    		currentHeading = currentHeading-180;
+    	}
+      	headingDelta = (int) ( previousHeading - currentHeading ) % 360;
+		int turn_slope = 100;
+		headingTresh = (float) SB_TURN_MIN + turn_slope / gps.speed.kmph();
+
+		int lastTx = millis() - lastTxTime;
+		
+		if ( lastTx > SB_MIN_BCN * 1000)
+		{
+			//send_update = true;
+			// Check for heading more than 25 degrees
+			if ( (headingDelta < -SB_TURN_MIN || headingDelta > SB_TURN_MIN) && lastTxdistance > SB_MIN_TX_DIST )
+			{
+				send_update = true;
+			}
+		}
+
+		if ( lastTx >= txInterval )
+		{
+			// Trigger Tx Tracker when Tx interval is reach 
+			// Will not Tx if stationary bcos speed < 5 and lastTxDistance < 20
+			if ( lastTxdistance > 20 )
+			{
+				send_update = true;
+			}
+		}
+	}
+#endif
+
+	if(send_update && gps.location.isValid() && gps_loc_update)
 	{
 		powerManagement.deactivateMeasurement();
 		nextBeaconTimeStamp = now() + (BEACON_TIMEOUT * SECS_PER_MIN);
@@ -109,6 +178,15 @@ void loop()
 		LoRa.write((const uint8_t *)data.c_str(), data.length());
 		LoRa.endPacket();
 		powerManagement.activateMeasurement();
+
+#ifdef SB_ACTIVE
+		lastTxLat = gps.location.lat();
+    	lastTxLng = gps.location.lng();
+		previousHeading = currentHeading;
+		lastTxdistance = 0;
+		lastTxTime = millis();
+#endif
+
 	}
 
 	if(gps_time_update)
@@ -126,12 +204,38 @@ void loop()
 			, String("Bat: ") + batteryVoltage + "V " + batteryChargeCurrent + "mA"
 #endif
 			);
+
+#ifdef SB_ACTIVE
+	// Change the Tx internal based on the current speed
+	if ( gps.speed.kmph() < 5 )
+	{
+    	txInterval = 300000;         // Change Tx internal to 5 mins
+    }
+	else if ( gps.speed.kmph() < SB_SLOW_SPEED )
+	{
+    	txInterval = SB_SLOW_RATE * 1000;          // Change Tx interval
+    }
+	else if ( gps.speed.kmph() > SB_FAST_SPEED)
+	{
+        txInterval = SB_FAST_RATE * 1000;          // Change Tx interval
+    }
+	else
+	{
+    	// Interval inbetween low and high speed 
+        txInterval = (SB_FAST_SPEED / gps.speed.kmph()) * SB_FAST_RATE * 1000;
+    }
+#endif
+
 	}
 
+#if !defined(DEBUGMODE)
 	if(millis() > 5000 && gps.charsProcessed() < 10)
 	{
 		Serial.println("No GPS detected!");
 	}
+#endif
+
+
 }
 
 void setup_lora()
