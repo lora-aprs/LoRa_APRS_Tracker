@@ -8,6 +8,12 @@
 #define SYMBOL_CODE ">"
 #define SYMBOL_OVERLAY "/"
 
+// Freq and Mode Setup de YC1HVZ
+#define FREQ_SET	433775E3    //set freq in KHz XxxXxxE3 6 digit. E3 is KHz
+#define SF_SET		12          //Spreading Factor
+#define CR_SET		5           //Coding Rate
+#define BW_SET		125E3       //Bandwith -> E3 is khz
+
 // SMART BEACONING PARAMETERS   - 2020-11-22 DJ1AN
 #define SB_ACTIVE                // uncomment to enable Smart Beaconing
 #define SB_TURN_MIN 25           // enter turn angle for smart direction depending beaconing (default=20)
