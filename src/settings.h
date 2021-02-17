@@ -8,7 +8,7 @@
 #define SYMBOL_CODE ">"
 #define SYMBOL_OVERLAY "/"
 
-// Freq and Mode Setup de YC1HVZ
+// Freq and Mode Setup          - 2021-02-17 YC1HVZ
 #define FREQ_SET	433775E3    //set freq in KHz XxxXxxE3 6 digit. E3 is KHz
 #define SF_SET		12          //Spreading Factor
 #define CR_SET		5           //Coding Rate
