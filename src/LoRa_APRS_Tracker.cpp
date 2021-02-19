@@ -245,7 +245,7 @@ void setup_lora()
 	LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
 	Serial.println("[INFO] Set LoRa pins!");
 
-	long freq = 433775000;
+	long freq = FREQ_SET;
 	Serial.print("[INFO] frequency: ");
 	Serial.println(freq);
 	if (!LoRa.begin(freq)) {
@@ -253,9 +253,9 @@ void setup_lora()
 		show_display("ERROR", "Starting LoRa failed!");
 		while (1);
 	}
-	LoRa.setSpreadingFactor(12);
-	LoRa.setSignalBandwidth(125E3);
-	LoRa.setCodingRate4(5);
+	LoRa.setSpreadingFactor(SF_SET);
+	LoRa.setSignalBandwidth(BW_SET);
+	LoRa.setCodingRate4(CR_SET);
 	LoRa.enableCrc();
 
 	LoRa.setTxPower(20);
