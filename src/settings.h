@@ -7,6 +7,7 @@
 #define BEACON_TIMEOUT 1         // Beacon interval in Minutes. Will be overwritten by SB_ACTIVE
 #define SYMBOL_CODE ">"
 #define SYMBOL_OVERLAY "/"
+#define PATH_SET "APLT0"
 
 // Freq and Mode Setup          - 2021-02-17 YC1HVZ
 #define FREQ_SET	433775E3    //set freq in KHz XxxXxxE3 6 digit. E3 is KHz
