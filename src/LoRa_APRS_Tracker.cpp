@@ -162,7 +162,7 @@ void loop()
 
 		APRSMessage msg;
 		msg.setSource(CALL);
-		msg.setDestination("PATH_SET");
+		msg.setDestination(PATH_SET);
 		String lat = create_lat_aprs(gps.location.rawLat());
 		String lng = create_long_aprs(gps.location.rawLng());
 		msg.getAPRSBody()->setData(String("=") + lat + SYMBOL_OVERLAY + lng + SYMBOL_CODE + BEACON_MESSAGE);
