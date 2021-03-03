@@ -2,17 +2,17 @@
 #ifndef SETTINGS_H_
 #define SETTINGS_H_
 
-#define CALL "OE5BPA-7"
-#define BEACON_MESSAGE "LoRa APRS SB Tracker test"
-#define BEACON_TIMEOUT 1         // Beacon interval in Minutes. Will be overwritten by SB_ACTIVE
-#define SYMBOL_CODE ">"
-#define SYMBOL_OVERLAY "/"
+//#define CALL "DF1OE-12"
+//#define BEACON_MESSAGE "LoRa APRS SB Tracker test"
+//#define BEACON_TIMEOUT 1         // Beacon interval in Minutes. Will be overwritten by SB_ACTIVE
+//#define SYMBOL_CODE "["
+//#define SYMBOL_OVERLAY "/"
 
 // Freq and Mode Setup          - 2021-02-17 YC1HVZ
-#define FREQ_SET	433775E3    //set freq in KHz XxxXxxE3 6 digit. E3 is KHz
-#define SF_SET		12          //Spreading Factor
-#define CR_SET		5           //Coding Rate
-#define BW_SET		125E3       //Bandwith -> E3 is khz
+// #define FREQ_SET	433775E3    //set freq in KHz XxxXxxE3 6 digit. E3 is KHz
+// #define SF_SET		12          //Spreading Factor
+// #define CR_SET		5           //Coding Rate
+// #define BW_SET		125E3       //Bandwith -> E3 is khz
 
 // SMART BEACONING PARAMETERS   - 2020-11-22 DJ1AN
 #define SB_ACTIVE                // uncomment to enable Smart Beaconing

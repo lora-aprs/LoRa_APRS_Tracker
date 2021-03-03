@@ -9,15 +9,21 @@
 #include "display.h"
 #include "pins.h"
 #include "power_management.h"
+#include "configuration.h"
+Configuration Config;
 
 #include "power_management.h"
 PowerManagement powerManagement;
+
+#include "logger.h"
 
 HardwareSerial ss(1);
 TinyGPSPlus gps;
 
 void setup_lora();
 void setup_gps();
+void load_config();
+
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
 String createDateString(time_t t);
@@ -37,6 +43,7 @@ int lastTxTime = millis();
 void setup()
 {
 	Serial.begin(115200);
+	load_config();
 
 #ifdef TTGO_T_Beam_V1_0
 	Wire.begin(SDA, SCL);
@@ -61,7 +68,7 @@ void setup()
 
 #ifdef SB_ACTIVE
 	Serial.println("[INFO] Smart Beaconing Active");
-	show_display("DJ1AN", "Smart Beaconing","Active", 1000);
+	// show_display("DJ1AN", "Smart Beaconing","Active", 1000);
 #endif
 
 	setup_gps();
@@ -157,15 +164,15 @@ void loop()
 	if(send_update && gps.location.isValid() && gps_loc_update)
 	{
 		powerManagement.deactivateMeasurement();
-		nextBeaconTimeStamp = now() + (BEACON_TIMEOUT * SECS_PER_MIN);
+		nextBeaconTimeStamp = now() + (Config.beacon.timeout * SECS_PER_MIN);
 		send_update = false;
 
 		APRSMessage msg;
-		msg.setSource(CALL);
+		msg.setSource(Config.callsign);
 		msg.setDestination("APLT0");
 		String lat = create_lat_aprs(gps.location.rawLat());
 		String lng = create_long_aprs(gps.location.rawLng());
-		msg.getAPRSBody()->setData(String("=") + lat + SYMBOL_OVERLAY + lng + SYMBOL_CODE + BEACON_MESSAGE);
+		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + Config.beacon.message);
 		String data = msg.encode();
 		Serial.println(data);
 		show_display("<< TX >>", data);
@@ -196,7 +203,7 @@ void loop()
 		String batteryChargeCurrent(powerManagement.getBatteryChargeDischargeCurrent(), 0);
 #endif
 
-		show_display(CALL,
+		show_display(Config.callsign,
 			createDateString(now()) + " " + createTimeString(now()),
 			String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(),
 			String("Nxt Bcn: ") + createTimeString(nextBeaconTimeStamp)
@@ -245,7 +252,7 @@ void setup_lora()
 	LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
 	Serial.println("[INFO] Set LoRa pins!");
 
-	long freq = FREQ_SET;
+	long freq = Config.lora.frequencyTx;
 	Serial.print("[INFO] frequency: ");
 	Serial.println(freq);
 	if (!LoRa.begin(freq)) {
@@ -253,9 +260,9 @@ void setup_lora()
 		show_display("ERROR", "Starting LoRa failed!");
 		while (1);
 	}
-	LoRa.setSpreadingFactor(SF_SET);
-	LoRa.setSignalBandwidth(BW_SET);
-	LoRa.setCodingRate4(CR_SET);
+	LoRa.setSpreadingFactor(Config.lora.spreadingFactor);
+	LoRa.setSignalBandwidth(Config.lora.signalBandwidth);
+	LoRa.setCodingRate4(Config.lora.codingRate4);
 	LoRa.enableCrc();
 
 	LoRa.setTxPower(20);
@@ -268,6 +275,28 @@ void setup_gps()
 	ss.begin(9600, SERIAL_8N1, GPS_TX, GPS_RX);
 }
 
+void load_config()
+{
+	ConfigurationManagement confmg("/is-cfg.json");
+	Config = confmg.readConfiguration();
+	if(Config.callsign == "NOCALL-10")
+	{
+		logPrintlnE("You have to change your settings in 'data/is-cfg.json' and upload it via \"Upload File System image\"!");
+		show_display("ERROR", "You have to change your settings in 'data/is-cfg.json' and upload it via \"Upload File System image\"!");
+		while (true)
+		{}
+	}
+
+#ifndef ETH_BOARD
+	if(Config.aprs_is.active && !Config.wifi.active)
+	{
+		logPrintlnE("You have to activate Wifi for APRS IS to work, please check your settings!");
+		show_display("ERROR", "You have to activate Wifi for APRS IS to work, please check your settings!");
+		while (true)
+		{}
+	}
+#endif
+}
 String create_lat_aprs(RawDegrees lat)
 {
 	char str[20];

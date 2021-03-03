@@ -1,0 +1,34 @@
+{
+    "callsign":"DF1OE-12",
+    "beacon":
+	{
+		"message":"LoRa APRS Tracker Test",
+		"position":
+		{
+			"latitude":52.390212,
+			"longitude":9.745379
+		},
+        "timeout": 1,
+        "symbol": "[",
+        "overlay": "/" 
+        
+	},
+    "wifi":
+	{
+		"active":true,
+		"AP": [
+			{ "SSID":"DF1OE@JO42UJ", "password":"40683742350238290821" },
+            { "SSID":"DF1OE-H48", "password":"hamRadio4all" },
+            { "SSID":"DF1OE/m", "password":"dataRadio#"}
+		]
+	},
+    "lora":
+	{
+		"frequency_rx":433775000,
+		"frequency_tx":433775000,
+		"power":20,
+		"spreading_factor":12,
+		"signal_bandwidth":125000,
+		"coding_rate4":5
+	}
+}
