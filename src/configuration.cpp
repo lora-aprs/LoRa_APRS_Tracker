@@ -22,20 +22,24 @@ Configuration ConfigurationManagement::readConfiguration()
 	File file = SPIFFS.open(mFilePath);
 	if(!file)
 	{
-		logPrintlnE("Failed to open file for reading...");
+		Serial.println("Failed to open file for reading...");
 		return Configuration();
 	}
 	DynamicJsonDocument data(2048);
-	DeserializationError error = deserializeJson(data, file);
+	DeserializationError error = deserializeJson(data, file);	// update config in memory to get the new fields:
+	// writeConfiguration(conf);
+
 	if(error)
 	{
-		logPrintlnW("Failed to read file, using default configuration.");
+		Serial.println("Failed to read file, using default configuration.");
 	}
 	serializeJson(data, Serial);
 	Serial.println();
 	file.close();
 
 	Configuration conf;
+	if(data.containsKey("debug"))
+		conf.debug				= data["debug"] | false;
 	if(data.containsKey("callsign"))
 		conf.callsign				= data["callsign"].as<String>();
 
@@ -50,11 +54,20 @@ Configuration ConfigurationManagement::readConfiguration()
 	}
 	if(data.containsKey("beacon") && data["beacon"].containsKey("message"))
 		conf.beacon.message			= data["beacon"]["message"].as<String>();
-	conf.beacon.positionLatitude	= data["beacon"]["position"]["latitude"]	| 0.0;
-	conf.beacon.positionLongitude	= data["beacon"]["position"]["longitude"]	| 0.0;
+	
 	conf.beacon.timeout             = data["beacon"]["timeout"] | 1;
-	conf.beacon.overlay   			= data["beacon"]["overlay"].as<String>();
-	conf.beacon.symbol   			= data["beacon"]["overlay"] | "/";
+	conf.beacon.symbol   			= data["beacon"]["symbol"].as<String>();
+	conf.beacon.overlay   			= data["beacon"]["overlay"].as<String>() ;
+	
+	
+	conf.smart_beacon.active        = data["smart_beacon"]["active"];
+    conf.smart_beacon.turn_min		= data["smart_beacon"]["turn_min"];
+	conf.smart_beacon.slow_rate		= data["smart_beacon"]["slow_rate"];
+	conf.smart_beacon.slow_speed	= data["smart_beacon"]["slow_speed"];
+	conf.smart_beacon.fast_rate	    = data["smart_beacon"]["fast_rate"];
+	conf.smart_beacon.fast_speed	= data["smart_beacon"]["fast_speed"];
+	conf.smart_beacon.min_tx_dist	= data["smart_beacon"]["min_tx_dist"];
+	conf.smart_beacon.min_bcn		= data["smart_beacon"]["min_bcn"];
 	
 	conf.aprs_is.active				= data["aprs_is"]["active"]					| false;
 	if(data.containsKey("aprs_is") && data["aprs_is"].containsKey("password"))
@@ -95,10 +108,6 @@ Configuration ConfigurationManagement::readConfiguration()
 		us.password					= "ftp";
 		conf.ftp.users.push_back(us);
 	}
-
-	// update config in memory to get the new fields:
-	writeConfiguration(conf);
-
 	return conf;
 }
 
@@ -122,8 +131,15 @@ void ConfigurationManagement::writeConfiguration(Configuration conf)
 		v["password"]						= ap.password;
 	}
 	data["beacon"]["message"]				= conf.beacon.message;
-	data["beacon"]["position"]["latitude"] 	= conf.beacon.positionLatitude;
-	data["beacon"]["position"]["longitude"]	= conf.beacon.positionLongitude;
+	data["smart_beacon"]["active"]		= conf.smart_beacon.active;  
+	data["smart_beacon"]["turn_min"] 	= conf.smart_beacon.turn_min;	
+	data["smart_beacon"]["slow_rate"]	= conf.smart_beacon.slow_rate;	
+	data["smart_beacon"]["slow_speed"]	= conf.smart_beacon.slow_speed;
+	data["smart_beacon"]["fast_rate"]	= conf.smart_beacon.fast_rate;	  
+	data["smart_beacon"]["fast_speed"]	= conf.smart_beacon.fast_speed;
+	data["smart_beacon"]["min_tx_dist"] = conf.smart_beacon.min_tx_dist;
+	data["smart_beacon"]["min_bcn"] 	 = conf.smart_beacon.min_bcn ;
+   	
 	data["aprs_is"]["active"]				= conf.aprs_is.active;
 	data["aprs_is"]["password"]				= conf.aprs_is.password;
 	data["aprs_is"]["server"]				= conf.aprs_is.server;

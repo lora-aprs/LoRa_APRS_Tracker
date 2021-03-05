@@ -1,4 +1,6 @@
-# LoRa APRS Tracker
+# LoRa APRS Tracker 
+
+Forked from <https://github.com/lora-aprs/LoRa_APRS_Tracker>, Peter, OE5BPA
 
 The LoRa APRS Tracker will work with very cheep hardware which you can buy from amazon, ebay or aliexpress.
 Try it out and be part of the APRS network.
@@ -15,12 +17,9 @@ You can use one of the Lora32 boards:
 This boards cost around 30 Euros, they are very cheap but perfect for an LoRa iGate.
 Keep in minde: you need a 433MHz version!
 
-## Compiling
+## Intention
 
-### How to compile
-
-The best success is to use PlatformIO. Go to https://platformio.org/ and download the IDE. Just open the folder and you can compile the Firmware.
-Here is a [Video](https://www.youtube.com/watch?v=clIlTEFbWLk&feature=emb_logo) tutorial in german language how to install the software. 
+I forked this version because of my intention to build a specialized tracker for my mobile home. It should collect data from some sensors, weather condition etc. and send it to the APRS-System in two ways: If no wifi is present, it should just send the Packet to 433 MHz. If a known wifi is present, it should try to send the packet via wifi to the APRS-System direct.
 
 ### Dependencies
 
@@ -32,12 +31,20 @@ Here is a [Video](https://www.youtube.com/watch?v=clIlTEFbWLk&feature=emb_logo) 
 
 ## Configuration
 
-Change your configuration in settings.h
+Change your configuration in /data/is-cfg,json
 
 ## Future plans
 
-The complete configuration should move to [IotWebConf](https://github.com/prampec/IotWebConf).
+At the source i forked the complete configuration may move to [IotWebConf](https://github.com/prampec/IotWebConf).
+It may possible i move too...
 
-## LoRa iGate
+* [ ] add sending packet direct via wifi to aprs-net (using work from Peter, OE5BPA)
+* [ ] some refactoring
+* [ ] REST-API or communication with webserver
+* [ ] web-page sensors information
+* [ ] etc.
 
-Look at my other project: a [LoRa iGate](https://github.com/peterus/LoRa_APRS_iGate)
+# History
+
+01.03.2021  Forked
+05.03.2021  Moved configuration to json-file in filesystem

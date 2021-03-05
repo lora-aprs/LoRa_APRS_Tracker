@@ -1,34 +1,38 @@
 {
-    "callsign":"DF1OE-12",
+    "callsign":"NOCALL-10",
+	"debug": false,
     "beacon":
 	{
-		"message":"LoRa APRS Tracker Test",
-		"position":
-		{
-			"latitude":52.390212,
-			"longitude":9.745379
-		},
+		"message":"TTGO LoRA-APRS Tracker",
         "timeout": 1,
         "symbol": "[",
-        "overlay": "/" 
-        
+        "overlay": "/"
+	},
+	"smart_beacon":
+	{
+		"active":false,
+        "turn_min":25,
+		"slow_rate":300,
+		"slow_speed":10,
+		"fast_rate":60,
+		"fast_speed":100,
+		"min_tx_dist":100,
+		"min_bcn":5
 	},
     "wifi":
 	{
-		"active":true,
+		"active":false,
 		"AP": [
-			{ "SSID":"DF1OE@JO42UJ", "password":"40683742350238290821" },
-            { "SSID":"DF1OE-H48", "password":"hamRadio4all" },
-            { "SSID":"DF1OE/m", "password":"dataRadio#"}
+			{ "SSID":"yourssid", "password":"yoursecrets" }
 		]
 	},
     "lora":
 	{
-		"frequency_rx":433775000,
-		"frequency_tx":433775000,
+		"frequency_rx":433775E3,
+		"frequency_tx":433775E3,
 		"power":20,
 		"spreading_factor":12,
-		"signal_bandwidth":125000,
+		"signal_bandwidth":125E3,
 		"coding_rate4":5
 	}
 }

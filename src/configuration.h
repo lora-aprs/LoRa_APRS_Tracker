@@ -30,14 +30,28 @@ public:
 	class Beacon
 	{
 	public:
-		Beacon() : message("LoRa Tracker, Info: github.com/peterus/LoRa_APRS_Tracker"), positionLatitude(0.0), positionLongitude(0.0) {}
+		Beacon() : message("LoRa Tracker, Info: github.com/peterus/LoRa_APRS_Tracker") {}
 
 		String message;
 		int  timeout = 1;
-        String symbol = ">";
-        String overlay = "/"; 
-		double positionLatitude;
-		double positionLongitude;
+        String symbol;
+        String overlay; 
+		
+	};
+
+	class Smart_Beacon
+	{
+		public: 
+		Smart_Beacon() :  active(true), turn_min(25), slow_rate(300), slow_speed(10), fast_rate(60), fast_speed(100), min_tx_dist(100), min_bcn(5) {}
+		
+		bool active;
+        int turn_min;
+		int slow_rate;
+		int slow_speed;
+		int fast_rate;
+		int fast_speed;
+		int min_tx_dist;
+		int min_bcn;
 	};
 
 	class APRS_IS
@@ -67,7 +81,7 @@ public:
 	class LoRa
 	{
 	public:
-		LoRa() : frequencyRx(433775000), frequencyTx(433775000), power(20), spreadingFactor(12), signalBandwidth(125000), codingRate4(5) {}
+		LoRa() : frequencyRx(433775E3), frequencyTx(433775E3), power(20), spreadingFactor(12), signalBandwidth(125000), codingRate4(5) {}
 
 		long frequencyRx;
 		long frequencyTx;
@@ -108,11 +122,13 @@ public:
 	String callsign;
 	Wifi wifi;
 	Beacon beacon;
+	Smart_Beacon smart_beacon;
 	APRS_IS aprs_is;
 	Digi digi;
 	LoRa lora;
 	Display display;
 	Ftp ftp;
+	bool debug;
 };
 
 class ConfigurationManagement
