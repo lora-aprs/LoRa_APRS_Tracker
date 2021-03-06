@@ -4,24 +4,29 @@
 #include <TinyGPS++.h>
 #include <TimeLib.h>
 #include <WiFi.h>
-
-#include "settings.h"
 #include "display.h"
 #include "pins.h"
 #include "power_management.h"
+#include "configuration.h"
+Configuration Config;
 
 #include "power_management.h"
 PowerManagement powerManagement;
+
+#include "logger.h"
 
 HardwareSerial ss(1);
 TinyGPSPlus gps;
 
 void setup_lora();
 void setup_gps();
+void load_config();
+
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
 String createDateString(time_t t);
 String createTimeString(time_t t);
+String getSmartBeaconState();
 
 static bool send_update = true;
 
@@ -37,6 +42,7 @@ int lastTxTime = millis();
 void setup()
 {
 	Serial.begin(115200);
+	
 
 #ifdef TTGO_T_Beam_V1_0
 	Wire.begin(SDA, SCL);
@@ -57,13 +63,10 @@ void setup()
 	delay(500);
 	Serial.println("[INFO] LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
 	setup_display();
-	show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
-
-#ifdef SB_ACTIVE
-	Serial.println("[INFO] Smart Beaconing Active");
-	show_display("DJ1AN", "Smart Beaconing","Active", 1000);
-#endif
-
+	
+	show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", "[INFO] Smart Beacon is " + getSmartBeaconState(), 2000);
+    load_config();
+	
 	setup_gps();
 	setup_lora();
 
@@ -71,28 +74,31 @@ void setup()
 	WiFi.mode(WIFI_OFF);
 	btStop();
 
-	delay(500);
+    Serial.println("[INFO] Smart Beacon is " + getSmartBeaconState());
 	Serial.println("[INFO] setup done...");
+	delay(500);
+	
 }
 
 // cppcheck-suppress unusedFunction
 void loop()
 {
-#if !defined(DEBUGMODE)
+if (Config.debug == false)
 	while (ss.available() > 0)
 	{
 		char c = ss.read();
 		//Serial.print(c);
 		gps.encode(c);
 	}
-#else
+else
+{
 	while (Serial.available() > 0)
 	{
 		char c = Serial.read();
 		//Serial.print(c);
 		gps.encode(c);
 	}
-#endif
+}
 
 	bool gps_time_update = gps.time.isUpdated();
 	bool gps_loc_update = gps.location.isUpdated();
@@ -109,7 +115,8 @@ void loop()
 
 	}
 
-#ifdef SB_ACTIVE
+  if (Config.smart_beacon.active)
+  {
 	send_update = false;
   	if ( gps_loc_update )
 	{
@@ -128,15 +135,15 @@ void loop()
     	}
       	headingDelta = (int) ( previousHeading - currentHeading ) % 360;
 		int turn_slope = 100;
-		headingTresh = (float) SB_TURN_MIN + turn_slope / gps.speed.kmph();
+		headingTresh = (float) Config.smart_beacon.turn_min + turn_slope / gps.speed.kmph();
 
 		int lastTx = millis() - lastTxTime;
 		
-		if ( lastTx > SB_MIN_BCN * 1000)
+		if ( lastTx > Config.smart_beacon.min_bcn * 1000)
 		{
 			//send_update = true;
 			// Check for heading more than 25 degrees
-			if ( (headingDelta < -SB_TURN_MIN || headingDelta > SB_TURN_MIN) && lastTxdistance > SB_MIN_TX_DIST )
+			if ( (headingDelta < -Config.smart_beacon.turn_min || headingDelta > Config.smart_beacon.turn_min) && lastTxdistance > Config.smart_beacon.min_tx_dist )
 			{
 				send_update = true;
 			}
@@ -152,20 +159,29 @@ void loop()
 			}
 		}
 	}
-#endif
+  }
 
 	if(send_update && gps.location.isValid() && gps_loc_update)
 	{
+	#ifdef 	TTGO_T_Beam_V1_0
+		String volts = "Bat.: " + powerManagement.getBatteryVoltageStr() + " V";
+        String amps = "Cur.:" + powerManagement.getBatteryChargeDischargeCurrentStr() + " mA";
+		String sats = String("Sats: ") + gps.satellites.value();
+		
+	#endif	
 		powerManagement.deactivateMeasurement();
-		nextBeaconTimeStamp = now() + (BEACON_TIMEOUT * SECS_PER_MIN);
+		
+		nextBeaconTimeStamp = now() + (Config.beacon.timeout * SECS_PER_MIN);
+		String nextbcnStr = String("Nxt Bcn: ") + createTimeString(nextBeaconTimeStamp);
 		send_update = false;
 
 		APRSMessage msg;
-		msg.setSource(CALL);
+		msg.setSource(Config.callsign);
 		msg.setDestination("APLT0");
 		String lat = create_lat_aprs(gps.location.rawLat());
 		String lng = create_long_aprs(gps.location.rawLng());
-		msg.getAPRSBody()->setData(String("=") + lat + SYMBOL_OVERLAY + lng + SYMBOL_CODE + BEACON_MESSAGE);
+		
+		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + Config.beacon.message  + " - " + volts + " - " + amps + " - " + sats);
 		String data = msg.encode();
 		Serial.println(data);
 		show_display("<< TX >>", data);
@@ -179,14 +195,14 @@ void loop()
 		LoRa.endPacket();
 		powerManagement.activateMeasurement();
 
-#ifdef SB_ACTIVE
-		lastTxLat = gps.location.lat();
-    	lastTxLng = gps.location.lng();
-		previousHeading = currentHeading;
-		lastTxdistance = 0;
-		lastTxTime = millis();
-#endif
-
+		if (Config.smart_beacon.active)
+  		{
+			lastTxLat = gps.location.lat();
+			lastTxLng = gps.location.lng();
+			previousHeading = currentHeading;
+			lastTxdistance = 0;
+			lastTxTime = millis();
+    	}
 	}
 
 	if(gps_time_update)
@@ -196,44 +212,46 @@ void loop()
 		String batteryChargeCurrent(powerManagement.getBatteryChargeDischargeCurrent(), 0);
 #endif
 
-		show_display(CALL,
+		show_display(Config.callsign,
 			createDateString(now()) + " " + createTimeString(now()),
 			String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(),
 			String("Nxt Bcn: ") + createTimeString(nextBeaconTimeStamp)
 #ifdef TTGO_T_Beam_V1_0
 			, String("Bat: ") + batteryVoltage + "V " + batteryChargeCurrent + "mA"
 #endif
+			, String("Smart Beacon is " + getSmartBeaconState())
 			);
 
-#ifdef SB_ACTIVE
-	// Change the Tx internal based on the current speed
-	if ( gps.speed.kmph() < 5 )
-	{
-    	txInterval = 300000;         // Change Tx internal to 5 mins
-    }
-	else if ( gps.speed.kmph() < SB_SLOW_SPEED )
-	{
-    	txInterval = SB_SLOW_RATE * 1000;          // Change Tx interval
-    }
-	else if ( gps.speed.kmph() > SB_FAST_SPEED)
-	{
-        txInterval = SB_FAST_RATE * 1000;          // Change Tx interval
-    }
-	else
-	{
-    	// Interval inbetween low and high speed 
-        txInterval = (SB_FAST_SPEED / gps.speed.kmph()) * SB_FAST_RATE * 1000;
-    }
-#endif
+if (Config.smart_beacon.active)
+  		{
+			// Change the Tx internal based on the current speed
+			if ( gps.speed.kmph() < 5 )
+			{
+    			txInterval = 300000;         // Change Tx internal to 5 mins
+    		}
+			else if ( gps.speed.kmph() < Config.smart_beacon.slow_speed )
+			{
+    			txInterval = Config.smart_beacon.slow_rate * 1000;          // Change Tx interval
+    		}
+			else if ( gps.speed.kmph() > Config.smart_beacon.fast_speed)
+			{
+    		    txInterval = Config.smart_beacon.fast_rate * 1000;          // Change Tx interval
+    		}
+			else
+			{
+    			// Interval inbetween low and high speed 
+    		    txInterval = (Config.smart_beacon.fast_speed / gps.speed.kmph()) * Config.smart_beacon.fast_rate * 1000;
+    		}
+		}
 
 	}
 
-#if !defined(DEBUGMODE)
-	if(millis() > 5000 && gps.charsProcessed() < 10)
+   
+	if ((Config.debug == false) && (millis() > 5000 && gps.charsProcessed() < 10))
 	{
 		Serial.println("No GPS detected!");
 	}
-#endif
+
 
 
 }
@@ -245,7 +263,7 @@ void setup_lora()
 	LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
 	Serial.println("[INFO] Set LoRa pins!");
 
-	long freq = FREQ_SET;
+	long freq = Config.lora.frequencyTx;
 	Serial.print("[INFO] frequency: ");
 	Serial.println(freq);
 	if (!LoRa.begin(freq)) {
@@ -253,9 +271,9 @@ void setup_lora()
 		show_display("ERROR", "Starting LoRa failed!");
 		while (1);
 	}
-	LoRa.setSpreadingFactor(SF_SET);
-	LoRa.setSignalBandwidth(BW_SET);
-	LoRa.setCodingRate4(CR_SET);
+	LoRa.setSpreadingFactor(Config.lora.spreadingFactor);
+	LoRa.setSignalBandwidth(Config.lora.signalBandwidth);
+	LoRa.setCodingRate4(Config.lora.codingRate4);
 	LoRa.enableCrc();
 
 	LoRa.setTxPower(20);
@@ -268,6 +286,28 @@ void setup_gps()
 	ss.begin(9600, SERIAL_8N1, GPS_TX, GPS_RX);
 }
 
+void load_config()
+{
+	ConfigurationManagement confmg("/is-cfg.json");
+	Config = confmg.readConfiguration();
+	if(Config.callsign == "NOCALL-10")
+	{
+		logPrintlnE("You have to change your settings in 'data/is-cfg.json' and upload it via \"Upload File System image\"!");
+		show_display("ERROR", "You have to change your settings in 'data/is-cfg.json' and upload it via \"Upload File System image\"!");
+		while (true)
+		{}
+	}
+
+#ifndef ETH_BOARD
+	if(Config.aprs_is.active && !Config.wifi.active)
+	{
+		logPrintlnE("You have to activate Wifi for APRS IS to work, please check your settings!");
+		show_display("ERROR", "You have to activate Wifi for APRS IS to work, please check your settings!");
+		while (true)
+		{}
+	}
+#endif
+}
 String create_lat_aprs(RawDegrees lat)
 {
 	char str[20];
@@ -310,4 +350,18 @@ String createTimeString(time_t t)
 	char line[30];
 	sprintf(line, "%02d:%02d:%02d", hour(t), minute(t), second(t));
 	return String(line);
+}
+
+String getSmartBeaconState()
+{
+  String   sm_beaconstate = "";
+	if (Config.smart_beacon.active == true)
+	{
+		sm_beaconstate = "On";
+	}
+	else
+	{
+		sm_beaconstate = "Off";
+	}
+	return sm_beaconstate;
 }

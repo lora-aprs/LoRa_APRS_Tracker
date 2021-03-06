@@ -1,0 +1,38 @@
+{
+    "callsign":"NOCALL-10",
+	"debug": false,
+    "beacon":
+	{
+		"message":"TTGO LoRA-APRS Tracker",
+        "timeout": 1,
+        "symbol": "[",
+        "overlay": "/"
+	},
+	"smart_beacon":
+	{
+		"active":false,
+        "turn_min":25,
+		"slow_rate":300,
+		"slow_speed":10,
+		"fast_rate":60,
+		"fast_speed":100,
+		"min_tx_dist":100,
+		"min_bcn":5
+	},
+    "wifi":
+	{
+		"active":false,
+		"AP": [
+			{ "SSID":"yourssid", "password":"yoursecrets" }
+		]
+	},
+    "lora":
+	{
+		"frequency_rx":433775E3,
+		"frequency_tx":433775E3,
+		"power":20,
+		"spreading_factor":12,
+		"signal_bandwidth":125E3,
+		"coding_rate4":5
+	}
+}
