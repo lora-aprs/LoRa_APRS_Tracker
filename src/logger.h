@@ -17,10 +17,10 @@ public:
 	};
 
 	static Logger & instance()
-    {
-       static Logger _instance;
-       return _instance;
-    }
+	{
+		static Logger _instance;
+		return _instance;
+	}
 
 	~Logger() {}
 

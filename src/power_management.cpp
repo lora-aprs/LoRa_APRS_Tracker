@@ -76,37 +76,11 @@ double PowerManagement::getBatteryVoltage()
 }
 
 // cppcheck-suppress unusedFunction
-String PowerManagement::getBatteryVoltageStr()
-{
-	double volts = axp.getBattVoltage() / 1000.0;
-	return String(volts);
-	
-}
-
-// cppcheck-suppress unusedFunction
 double PowerManagement::getBatteryChargeDischargeCurrent()
 {
-	
 	if(axp.isChargeing())
 	{
 		return axp.getBattChargeCurrent();
 	}
 	return -1.0 * axp.getBattDischargeCurrent();
-	}
-
-
-// cppcheck-suppress unusedFunction
-String PowerManagement::getBatteryChargeDischargeCurrentStr()
-{
-	double amps = 0.0;
-	if(axp.isChargeing())
-	{
-		amps = axp.getBattChargeCurrent();
-	}
-	else
-	{
-	    amps = -1.0 * axp.getBattDischargeCurrent();
-	};
-	return String(amps,'\000');
 }
-

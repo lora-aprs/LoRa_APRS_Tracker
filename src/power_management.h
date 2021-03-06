@@ -25,9 +25,6 @@ public:
 	double getBatteryVoltage();
 	double getBatteryChargeDischargeCurrent();
 
-	String getBatteryVoltageStr();
-	String getBatteryChargeDischargeCurrentStr();
-
 private:
 	AXP20X_Class axp;
 };

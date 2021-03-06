@@ -3,7 +3,7 @@
 	"debug": false,
     "beacon":
 	{
-		"message":"TTGO LoRA-APRS Tracker",
+		"message":"LoRa Tracker, Info: github.com/lora-aprs/LoRa_APRS_Tracker",
         "timeout": 1,
         "symbol": "[",
         "overlay": "/"
@@ -19,20 +19,13 @@
 		"min_tx_dist":100,
 		"min_bcn":5
 	},
-    "wifi":
-	{
-		"active":false,
-		"AP": [
-			{ "SSID":"yourssid", "password":"yoursecrets" }
-		]
-	},
     "lora":
 	{
-		"frequency_rx":433775E3,
-		"frequency_tx":433775E3,
+		"frequency_rx":433775000,
+		"frequency_tx":433775000,
 		"power":20,
 		"spreading_factor":12,
-		"signal_bandwidth":125E3,
+		"signal_bandwidth":125000,
 		"coding_rate4":5
 	}
 }

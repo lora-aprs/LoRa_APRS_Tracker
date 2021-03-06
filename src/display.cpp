@@ -5,6 +5,7 @@
 
 #include "display.h"
 #include "pins.h"
+#include "logger.h"
 
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_RST);
 
@@ -18,8 +19,9 @@ void setup_display()
 	Wire.begin(OLED_SDA, OLED_SCL);
 	if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3c, false, false))
 	{
-		Serial.println("SSD1306 allocation failed");
-		while (1);
+		logPrintlnE("SSD1306 allocation failed");
+		while(true)
+		{}
 	}
 
 	display.clearDisplay();
