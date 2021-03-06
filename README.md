@@ -1,6 +1,4 @@
-# LoRa APRS Tracker 
-
-Forked from <https://github.com/lora-aprs/LoRa_APRS_Tracker>, Peter, OE5BPA
+# LoRa APRS Tracker
 
 The LoRa APRS Tracker will work with very cheep hardware which you can buy from amazon, ebay or aliexpress.
 Try it out and be part of the APRS network.
@@ -17,34 +15,27 @@ You can use one of the Lora32 boards:
 This boards cost around 30 Euros, they are very cheap but perfect for an LoRa iGate.
 Keep in minde: you need a 433MHz version!
 
-## Intention
+## Compiling and configuration
 
-I forked this version because of my intention to build a specialized tracker for my mobile home. It should collect data from some sensors, weather condition etc. and send it to the APRS-System in two ways: If no wifi is present, it should just send the Packet to 433 MHz. If a known wifi is present, it should try to send the packet via wifi to the APRS-System direct.
+**There is a german [quick start](https://www.lora-aprs.info/docs/LoRa_APRS_iGate/quick-start-guide/) page! Take a look ;)**
 
-### Dependencies
+**There is a french [quick start](http://www.f5kmy.fr/spip.php?article509) page! Take a look ;)**
 
-* [LoRa](https://github.com/sandeepmistry/arduino-LoRa) by Sandeep Mistry
-* [APRS-Decoder-Lib](https://github.com/peterus/APRS-Decoder-Lib) by Peter Buchegger
-* [Adafruit SSD1306](https://github.com/adafruit/Adafruit_SSD1306) by Adafruit (with all dependecies)
-* [TinyGPSPlus](https://github.com/mikalhart/TinyGPSPlus) by Mikal Hart
-* [AXP202X_Library](https://github.com/lewisxhe/AXP202X_Library) by Lewis He
+### How to compile
 
-## Configuration
+The best success is to use PlatformIO (and it is the only platform where I can support you). 
 
-Change your configuration in /data/is-cfg,json
+* Go to [PlatformIO](https://platformio.org/) download and install the IDE. 
+* If installed open the IDE, go to the left side and klick on 'extensions' then search for 'PatformIO' and install.
+* When installed click 'the ant head' on the left and choose import the project on the right.
+* Just open the folder and you can compile the Firmware.
 
-## Future plans
+### Configuration
 
-At the source i forked the complete configuration may move to [IotWebConf](https://github.com/prampec/IotWebConf).
-It may possible i move too...
+* You can find all nessesary settings to change for your configuration in **data/is-cfg.json**.
+* To upload it to your board you have to do this via **Upload File System image** in PlatformIO!
+* To find the 'Upload File System image' click the PlatformIO symbol (the little alien) on the left side, choos your configuration, click on 'Platform' and search for 'Upload File System image'.
 
-* [ ] add sending packet direct via wifi to aprs-net (using work from Peter, OE5BPA)
-* [ ] some refactoring
-* [ ] REST-API or communication with webserver
-* [ ] web-page sensors information
-* [ ] etc.
+## LoRa iGate
 
-# History
-
-01.03.2021  Forked
-05.03.2021  Moved configuration to json-file in filesystem
+Look at my other project: a [LoRa iGate](https://github.com/peterus/LoRa_APRS_iGate)
