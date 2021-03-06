@@ -41,17 +41,17 @@ Configuration ConfigurationManagement::readConfiguration()
 
 	if(data.containsKey("beacon") && data["beacon"].containsKey("message"))
 		conf.beacon.message			= data["beacon"]["message"].as<String>();
-	conf.beacon.timeout             = data["beacon"]["timeout"]					| 1;
+	conf.beacon.timeout				= data["beacon"]["timeout"]					| 1;
 	if(data.containsKey("beacon") && data["beacon"].containsKey("symbol"))
-		conf.beacon.symbol   		= data["beacon"]["symbol"].as<String>();
+		conf.beacon.symbol			= data["beacon"]["symbol"].as<String>();
 	if(data.containsKey("beacon") && data["beacon"].containsKey("overlay"))
-		conf.beacon.overlay   		= data["beacon"]["overlay"].as<String>() ;
-	
-	conf.smart_beacon.active        = data["smart_beacon"]["active"]			| false;
-    conf.smart_beacon.turn_min		= data["smart_beacon"]["turn_min"]			| 25;
+		conf.beacon.overlay			= data["beacon"]["overlay"].as<String>() ;
+
+	conf.smart_beacon.active		= data["smart_beacon"]["active"]			| false;
+	conf.smart_beacon.turn_min		= data["smart_beacon"]["turn_min"]			| 25;
 	conf.smart_beacon.slow_rate		= data["smart_beacon"]["slow_rate"]			| 300;
 	conf.smart_beacon.slow_speed	= data["smart_beacon"]["slow_speed"]		| 10;
-	conf.smart_beacon.fast_rate	    = data["smart_beacon"]["fast_rate"]			| 60;
+	conf.smart_beacon.fast_rate		= data["smart_beacon"]["fast_rate"]			| 60;
 	conf.smart_beacon.fast_speed	= data["smart_beacon"]["fast_speed"]		| 100;
 	conf.smart_beacon.min_tx_dist	= data["smart_beacon"]["min_tx_dist"]		| 100;
 	conf.smart_beacon.min_bcn		= data["smart_beacon"]["min_bcn"]			| 5;
@@ -91,7 +91,7 @@ void ConfigurationManagement::writeConfiguration(Configuration conf)
 	data["smart_beacon"]["fast_speed"]		= conf.smart_beacon.fast_speed;
 	data["smart_beacon"]["min_tx_dist"] 	= conf.smart_beacon.min_tx_dist;
 	data["smart_beacon"]["min_bcn"] 		= conf.smart_beacon.min_bcn ;
-   	
+
 	data["lora"]["frequency_rx"]			= conf.lora.frequencyRx;
 	data["lora"]["frequency_tx"]			= conf.lora.frequencyTx;
 	data["lora"]["power"]					= conf.lora.power;
