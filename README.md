@@ -15,28 +15,26 @@ You can use one of the Lora32 boards:
 This boards cost around 30 Euros, they are very cheap but perfect for an LoRa iGate.
 Keep in minde: you need a 433MHz version!
 
-## Compiling
+## Compiling and configuration
+
+**There is a german [quick start](https://www.lora-aprs.info/docs/LoRa_APRS_iGate/quick-start-guide/) page! Take a look ;)**
+
+**There is a french [quick start](http://www.f5kmy.fr/spip.php?article509) page! Take a look ;)**
 
 ### How to compile
 
-The best success is to use PlatformIO. Go to https://platformio.org/ and download the IDE. Just open the folder and you can compile the Firmware.
-Here is a [Video](https://www.youtube.com/watch?v=clIlTEFbWLk&feature=emb_logo) tutorial in german language how to install the software. 
+The best success is to use PlatformIO (and it is the only platform where I can support you). 
 
-### Dependencies
+* Go to [PlatformIO](https://platformio.org/) download and install the IDE. 
+* If installed open the IDE, go to the left side and klick on 'extensions' then search for 'PatformIO' and install.
+* When installed click 'the ant head' on the left and choose import the project on the right.
+* Just open the folder and you can compile the Firmware.
 
-* [LoRa](https://github.com/sandeepmistry/arduino-LoRa) by Sandeep Mistry
-* [APRS-Decoder-Lib](https://github.com/peterus/APRS-Decoder-Lib) by Peter Buchegger
-* [Adafruit SSD1306](https://github.com/adafruit/Adafruit_SSD1306) by Adafruit (with all dependecies)
-* [TinyGPSPlus](https://github.com/mikalhart/TinyGPSPlus) by Mikal Hart
-* [AXP202X_Library](https://github.com/lewisxhe/AXP202X_Library) by Lewis He
+### Configuration
 
-## Configuration
-
-Change your configuration in settings.h
-
-## Future plans
-
-The complete configuration should move to [IotWebConf](https://github.com/prampec/IotWebConf).
+* You can find all nessesary settings to change for your configuration in **data/is-cfg.json**.
+* To upload it to your board you have to do this via **Upload File System image** in PlatformIO!
+* To find the 'Upload File System image' click the PlatformIO symbol (the little alien) on the left side, choos your configuration, click on 'Platform' and search for 'Upload File System image'.
 
 ## LoRa iGate
 

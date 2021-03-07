@@ -84,4 +84,3 @@ double PowerManagement::getBatteryChargeDischargeCurrent()
 	}
 	return -1.0 * axp.getBattDischargeCurrent();
 }
-
