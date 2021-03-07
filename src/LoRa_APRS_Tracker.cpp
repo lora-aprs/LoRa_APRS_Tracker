@@ -72,20 +72,20 @@ void setup()
 // cppcheck-suppress unusedFunction
 void loop()
 {
-	if(Config.debug == false)
+	if(Config.debug)
 	{
-		while(ss.available() > 0)
+		while(Serial.available() > 0)
 		{
-			char c = ss.read();
+			char c = Serial.read();
 			//Serial.print(c);
 			gps.encode(c);
 		}
 	}
 	else
 	{
-		while(Serial.available() > 0)
+		while(ss.available() > 0)
 		{
-			char c = Serial.read();
+			char c = ss.read();
 			//Serial.print(c);
 			gps.encode(c);
 		}
@@ -201,9 +201,9 @@ void loop()
 			String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(),
 			String("Nxt Bcn: ") + createTimeString(nextBeaconTimeStamp)
 #ifdef TTGO_T_Beam_V1_0
-			, String("Bat: ") + batteryVoltage + "V " + batteryChargeCurrent + "mA"
+			, String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA"
 #endif
-			, String("Smart Beacon is " + getSmartBeaconState())
+			, String("Smart Beacon: " + getSmartBeaconState())
 			);
 
 		if(Config.smart_beacon.active)
