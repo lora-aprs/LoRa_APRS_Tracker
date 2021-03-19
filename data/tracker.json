@@ -1,5 +1,5 @@
 {
-	"callsign":"NOCALL-10",
+	"callsign":"NOCALL-7",
 	"debug": false,
 	"beacon":
 	{
@@ -10,7 +10,7 @@
 	},
 	"smart_beacon":
 	{
-		"active":false,
+		"active":true,
 		"turn_min":25,
 		"slow_rate":300,
 		"slow_speed":10,

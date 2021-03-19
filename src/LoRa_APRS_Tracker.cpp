@@ -27,12 +27,13 @@ String create_long_aprs(RawDegrees lng);
 String createDateString(time_t t);
 String createTimeString(time_t t);
 String getSmartBeaconState();
+String padding(unsigned int number, unsigned int width);
 
 // cppcheck-suppress unusedFunction
 void setup()
 {
 	Serial.begin(115200);
-	
+
 #ifdef TTGO_T_Beam_V1_0
 	Wire.begin(SDA, SCL);
 	if (!powerManagement.begin(Wire))
@@ -156,16 +157,19 @@ void loop()
 
 		APRSMessage msg;
 		msg.setSource(Config.callsign);
-		msg.setDestination("APLT0");
+		msg.setDestination("APLT00");
 		String lat = create_lat_aprs(gps.location.rawLat());
 		String lng = create_long_aprs(gps.location.rawLng());
+		String alt = padding((int)gps.altitude.feet(), 6);
+		String course = padding((int)gps.course.deg(), 3);
+		String speed = padding((int)gps.speed.knots(), 3);
 		
 #ifdef 	TTGO_T_Beam_V1_0
 		String batteryVoltage(powerManagement.getBatteryVoltage(), 2);
 		String batteryChargeCurrent(powerManagement.getBatteryChargeDischargeCurrent(), 0);
-		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + Config.beacon.message + " - Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA");
+		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + course + "/" + speed + "/A=" + alt + Config.beacon.message + " - Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA");
 #else
-		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + Config.beacon.message);
+		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + course + "/" + speed + "/A=" + alt + Config.beacon.message);
 #endif
 		String data = msg.encode();
 		logPrintlnD(data);
@@ -307,9 +311,7 @@ String create_long_aprs(RawDegrees lng)
 
 String createDateString(time_t t)
 {
-	char line[30];
-	sprintf(line, "%02d.%02d.%04d", day(t), month(t), year(t));
-	return String(line);
+	return String(padding(day(t), 2) + "." + padding(month(t), 2) + "." + padding(year(t), 4));
 }
 
 String createTimeString(time_t t)
@@ -318,9 +320,7 @@ String createTimeString(time_t t)
 	{
 		return String("00:00:00");
 	}
-	char line[30];
-	sprintf(line, "%02d:%02d:%02d", hour(t), minute(t), second(t));
-	return String(line);
+	return String(padding(hour(t), 2) + "." + padding(minute(t), 2) + "." + padding(second(t), 2));
 }
 
 String getSmartBeaconState()
@@ -330,4 +330,20 @@ String getSmartBeaconState()
 		return "On";
 	}
 	return "Off";
+}
+
+String padding(unsigned int number, unsigned int width)
+{
+	String result;
+	String num(number);
+	if(num.length() > width)
+	{
+		width = num.length();
+	}
+	for(unsigned int i = 0; i < width - num.length(); i++)
+	{
+		result.concat('0');
+	}
+	result.concat(num);
+	return result;
 }
