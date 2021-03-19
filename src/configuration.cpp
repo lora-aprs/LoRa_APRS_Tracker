@@ -1,5 +1,9 @@
 #include <SPIFFS.h>
 
+#ifndef CPPCHECK
+#include <ArduinoJson.h>
+#endif
+
 #include "configuration.h"
 #include "logger.h"
 
