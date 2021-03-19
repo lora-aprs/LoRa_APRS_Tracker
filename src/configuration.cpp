@@ -21,6 +21,7 @@ ConfigurationManagement::ConfigurationManagement(String FilePath)
 	}
 }
 
+// cppcheck-suppress unusedFunction
 Configuration ConfigurationManagement::readConfiguration()
 {
 	File file = SPIFFS.open(mFilePath);

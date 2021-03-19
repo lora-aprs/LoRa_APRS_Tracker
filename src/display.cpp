@@ -9,6 +9,7 @@
 
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_RST);
 
+// cppcheck-suppress unusedFunction
 void setup_display()
 {
 	pinMode(OLED_RST, OUTPUT);
@@ -34,6 +35,7 @@ void setup_display()
 	display.display();
 }
 
+// cppcheck-suppress unusedFunction
 void show_display(String header, int wait)
 {
 	display.clearDisplay();
@@ -47,6 +49,7 @@ void show_display(String header, int wait)
 	delay(wait);
 }
 
+// cppcheck-suppress unusedFunction
 void show_display(String header, String line1, int wait)
 {
 	display.clearDisplay();
@@ -63,6 +66,7 @@ void show_display(String header, String line1, int wait)
 	delay(wait);
 }
 
+// cppcheck-suppress unusedFunction
 void show_display(String header, String line1, String line2, int wait)
 {
 	display.clearDisplay();
@@ -81,6 +85,7 @@ void show_display(String header, String line1, String line2, int wait)
 	delay(wait);
 }
 
+// cppcheck-suppress unusedFunction
 void show_display(String header, String line1, String line2, String line3, int wait)
 {
 	display.clearDisplay();
@@ -101,6 +106,7 @@ void show_display(String header, String line1, String line2, String line3, int w
 	delay(wait);
 }
 
+// cppcheck-suppress unusedFunction
 void show_display(String header, String line1, String line2, String line3, String line4, int wait)
 {
 	display.clearDisplay();
@@ -123,6 +129,7 @@ void show_display(String header, String line1, String line2, String line3, Strin
 	delay(wait);
 }
 
+// cppcheck-suppress unusedFunction
 void show_display(String header, String line1, String line2, String line3, String line4, String line5, int wait)
 {
 	display.clearDisplay();
