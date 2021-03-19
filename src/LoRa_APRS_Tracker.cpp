@@ -156,7 +156,7 @@ void loop()
 
 		APRSMessage msg;
 		msg.setSource(Config.callsign);
-		msg.setDestination("APLT0");
+		msg.setDestination("APLT00");
 		String lat = create_lat_aprs(gps.location.rawLat());
 		String lng = create_long_aprs(gps.location.rawLng());
 		
