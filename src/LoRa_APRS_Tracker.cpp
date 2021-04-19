@@ -97,52 +97,78 @@ void loop()
 	static time_t nextBeaconTimeStamp = -1;
 	static bool send_update = true;
 
+	static double currentHeading = 0;
+	static double previousHeading = 0;
+	static unsigned int rate_limit_message_text = 0;
+
 	if(gps.time.isValid())
 	{
 		setTime(gps.time.hour(), gps.time.minute(), gps.time.second(), gps.date.day(), gps.date.month(), gps.date.year());
 
-		if(nextBeaconTimeStamp <= now())
+		if(gps_loc_update && nextBeaconTimeStamp <= now())
 		{
 			send_update = true;
+			if (Config.smart_beacon.active)
+			{
+				currentHeading = gps.course.deg();
+				// enforce message text on slowest Config.smart_beacon.slow_rate
+				rate_limit_message_text = 0;
+			}
+			else
+			{
+				// enforce message text every n's Config.beacon.timeout frame
+				if (Config.beacon.timeout * rate_limit_message_text > 30)
+				{
+					rate_limit_message_text = 0;
+				}
+			}
 		}
 	}
 
 	static double lastTxLat = 0.0;
 	static double lastTxLng = 0.0;
 	static double lastTxdistance = 0.0;
-	static unsigned long txInterval = 60000L;  // Initial 60 secs internal
+	static uint32_t txInterval = 60000L;  // Initial 60 secs internal
+	static uint32_t lastTxTime = millis();
+	static int speed_zero_sent = 0;
 
-	static double currentHeading = 0;
-	static double previousHeading = 0;
+	static bool BatteryIsConnected = false;
+	static String batteryVoltage = "";
+	static String batteryChargeCurrent = "";
+#ifdef TTGO_T_Beam_V1_0
+	static unsigned int rate_limit_check_battery = 0;
+	if (!(rate_limit_check_battery++ % 60))
+		BatteryIsConnected = powerManagement.isBatteryConnect();
+	if (BatteryIsConnected) {
+		batteryVoltage = String(powerManagement.getBatteryVoltage(), 2);
+		batteryChargeCurrent = String(powerManagement.getBatteryChargeDischargeCurrent(), 0);
+	}
+#endif
 
-	static int lastTxTime = millis();
-
-	if(Config.smart_beacon.active)
+	if(!send_update && gps_loc_update && Config.smart_beacon.active)
 	{
-		if(gps_loc_update)
+		uint32_t lastTx = millis() - lastTxTime;
+		currentHeading = gps.course.deg();
+		lastTxdistance = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), lastTxLat, lastTxLng);
+		if(lastTx >= txInterval)
 		{
-			lastTxdistance = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), lastTxLat, lastTxLng);
-				
+			// Trigger Tx Tracker when Tx interval is reach 
+			// Will not Tx if stationary bcos speed < 5 and lastTxDistance < 20
+			if (lastTxdistance > 20)
+			{
+				send_update = true;
+			}
+		}
+
+		if (!send_update)
+		{
 			// Get headings and heading delta
-			currentHeading = gps.course.deg();
 			double headingDelta = abs(previousHeading - currentHeading);
 
-			int lastTx = millis() - lastTxTime;
-			
 			if(lastTx > Config.smart_beacon.min_bcn * 1000)
 			{
 				// Check for heading more than 25 degrees
 				if(headingDelta > Config.smart_beacon.turn_min && lastTxdistance > Config.smart_beacon.min_tx_dist)
-				{
-					send_update = true;
-				}
-			}
-
-			if(lastTx >= txInterval)
-			{
-				// Trigger Tx Tracker when Tx interval is reach 
-				// Will not Tx if stationary bcos speed < 5 and lastTxDistance < 20
-				if (lastTxdistance > 20)
 				{
 					send_update = true;
 				}
@@ -153,24 +179,68 @@ void loop()
 	if(send_update && gps_loc_update)
 	{
 		send_update = false;
-		nextBeaconTimeStamp = now() + (Config.beacon.timeout * SECS_PER_MIN);
+		nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (Config.beacon.timeout * SECS_PER_MIN));
 
 		APRSMessage msg;
 		msg.setSource(Config.callsign);
-		msg.setDestination("APLT00");
+		msg.setDestination("APLT00-1");
 		String lat = create_lat_aprs(gps.location.rawLat());
 		String lng = create_long_aprs(gps.location.rawLng());
-		String alt = padding((int)gps.altitude.feet(), 6);
-		String course = padding((int)gps.course.deg(), 3);
-		String speed = padding((int)gps.speed.knots(), 3);
+
+		String alt = "";
+		int alt_int = max(-99999, min(999999, (int)gps.altitude.feet()));
+		if (alt_int < 0)
+		{
+			alt = "/A=-" + padding(alt_int * -1, 5);
+		}
+		else
+		{
+			alt = "/A=" + padding(alt_int, 6);
+		}
+
+		String course_and_speed = "";
+		int speed_int = max(0, min(999, (int)gps.speed.knots()));
+		if (speed_zero_sent < 3)
+		{
+			String speed = padding(speed_int, 3);
+			int course_int = max(0, min(360, (int)gps.course.deg()));
+			/* course in between 1..360 due to aprs spec */
+			if (course_int == 0)
+			{
+				course_int = 360;
+			}
+			String course = padding(course_int, 3);
+			course_and_speed = course + "/" + speed;
+		}
+		if (speed_int == 0)
+		{
+			/* speed is 0.
+			   we send 3 packets with speed zero (so our friends know we stand still).
+			   After that, we save airtime by not sending speed/course 000/000.
+			   Btw, even if speed we really do not move, measured course is changeing (-> no useful / even wrong info)
+			*/
+			if (speed_zero_sent < 3)
+			{
+				speed_zero_sent += 1;
+			}
+		}
+		else
+		{
+			speed_zero_sent = 0;
+		}
 		
-#ifdef 	TTGO_T_Beam_V1_0
-		String batteryVoltage(powerManagement.getBatteryVoltage(), 2);
-		String batteryChargeCurrent(powerManagement.getBatteryChargeDischargeCurrent(), 0);
-		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + course + "/" + speed + "/A=" + alt + Config.beacon.message + " - Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA");
-#else
-		msg.getAPRSBody()->setData(String("=") + lat + Config.beacon.overlay + lng + Config.beacon.symbol + course + "/" + speed + "/A=" + alt + Config.beacon.message);
-#endif
+		String aprsmsg;
+		aprsmsg = "!" + lat + Config.beacon.overlay + lng + Config.beacon.symbol + course_and_speed + alt;
+		// message_text every 10's packet (i.e. if we have beacon rate 1min at high speed -> every 10min). May be enforced above (at expirey of smart beacon rate (i.e. every 30min), or every third packet on static rate (i.e. static rate 10 -> every third packet)
+		if (!(rate_limit_message_text++ % 10))
+		{
+			aprsmsg += Config.beacon.message;
+		}
+		if (BatteryIsConnected)
+		{
+			aprsmsg += " -  _Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA";
+		}
+		msg.getAPRSBody()->setData(aprsmsg);
 		String data = msg.encode();
 		logPrintlnD(data);
 		show_display("<< TX >>", data);
@@ -195,41 +265,36 @@ void loop()
 
 	if(gps_time_update)
 	{
-#ifdef TTGO_T_Beam_V1_0
-		String batteryVoltage(powerManagement.getBatteryVoltage(), 2);
-		String batteryChargeCurrent(powerManagement.getBatteryChargeDischargeCurrent(), 0);
-#endif
-
 		show_display(Config.callsign,
 			createDateString(now()) + " " + createTimeString(now()),
 			String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(),
-			String("Nxt Bcn: ") + createTimeString(nextBeaconTimeStamp)
-#ifdef TTGO_T_Beam_V1_0
-			, String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA"
-#endif
-			, String("Smart Beacon: " + getSmartBeaconState())
-			);
+			String("Nxt Bcn: ") + (Config.smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp),
+			BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA" ) : "Powered via USB",
+			String("Smart Beacon: " + getSmartBeaconState()) );
 
 		if(Config.smart_beacon.active)
 		{
-			// Change the Tx internal based on the current speed
-			if(gps.speed.kmph() < 5)
-			{
-				txInterval = 300000; // Change Tx internal to 5 mins
-			}
-			else if(gps.speed.kmph() < Config.smart_beacon.slow_speed)
-			{
-				txInterval = Config.smart_beacon.slow_rate * 1000;
-			}
-			else if(gps.speed.kmph() > Config.smart_beacon.fast_speed)
-			{
-				txInterval = Config.smart_beacon.fast_rate * 1000;
-			}
-			else
-			{
-				// Interval inbetween low and high speed 
-				txInterval = (Config.smart_beacon.fast_speed / gps.speed.kmph()) * Config.smart_beacon.fast_rate * 1000;
-			}
+ 			// Change the Tx internal based on the current speed
+			int curr_speed = (int ) gps.speed.kmph();
+			if(curr_speed < Config.smart_beacon.slow_speed)
+ 			{
+ 				txInterval = Config.smart_beacon.slow_rate * 1000;
+ 			}
+			else if(curr_speed > Config.smart_beacon.fast_speed)
+ 			{
+ 				txInterval = Config.smart_beacon.fast_rate * 1000;
+ 			}
+ 			else
+ 			{
+				/* Interval inbetween low and high speed 
+				   min(slow_rate, ..) because: if slow rate is 300s at slow speed <= 10km/h and fast rate is 60s at fast speed >= 100km/h
+				   everything below current speed 20km/h (100*60/20 = 300) is below slow_rate.
+				   -> In the first check, if curr speed is 5km/h (which is < 10km/h), tx interval is 300s, but if speed is 6km/h, we are landing in this section,
+				   what leads to interval 100*60/6 = 1000s (16.6min) -> this would lead to decrease of beacon rate in between 5 to 20 km/h. what is even below
+				   the slow speed rate.
+				*/
+				txInterval = min(Config.smart_beacon.slow_rate, Config.smart_beacon.fast_speed * Config.smart_beacon.fast_rate / curr_speed) * 1000;
+ 			}
 		}
 	}
 

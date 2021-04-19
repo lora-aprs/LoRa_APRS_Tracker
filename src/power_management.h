@@ -25,6 +25,8 @@ public:
 	double getBatteryVoltage();
 	double getBatteryChargeDischargeCurrent();
 
+	bool isBatteryConnect();
+
 private:
 	AXP20X_Class axp;
 };

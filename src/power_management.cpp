@@ -84,3 +84,8 @@ double PowerManagement::getBatteryChargeDischargeCurrent()
 	}
 	return -1.0 * axp.getBattDischargeCurrent();
 }
+
+bool PowerManagement::isBatteryConnect()
+{
+	return axp.isBatteryConnect();
+}

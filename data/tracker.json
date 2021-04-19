@@ -3,7 +3,7 @@
 	"debug": false,
 	"beacon":
 	{
-		"message":"LoRa Tracker, Info: github.com/lora-aprs/LoRa_APRS_Tracker",
+		"message":"LoRa Tracker",
 		"timeout": 1,
 		"symbol": "[",
 		"overlay": "/"
