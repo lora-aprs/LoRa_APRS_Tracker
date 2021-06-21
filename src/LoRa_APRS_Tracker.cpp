@@ -310,8 +310,8 @@ void load_config()
 	Config = confmg.readConfiguration();
 	if(Config.callsign == "NOCALL-10")
 	{
-		logPrintlnE("You have to change your settings in 'data/is-cfg.json' and upload it via \"Upload File System image\"!");
-		show_display("ERROR", "You have to change your settings in 'data/is-cfg.json' and upload it via \"Upload File System image\"!");
+		logPrintlnE("You have to change your settings in 'data/tracker.json' and upload it via \"Upload File System image\"!");
+		show_display("ERROR", "You have to change your settings in 'data/tracker.json' and upload it via \"Upload File System image\"!");
 		while(true)
 		{}
 	}
