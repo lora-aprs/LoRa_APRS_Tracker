@@ -68,6 +68,12 @@ Configuration ConfigurationManagement::readConfiguration()
 	conf.lora.signalBandwidth		= data["lora"]["signal_bandwidth"]			| 125000;
 	conf.lora.codingRate4			= data["lora"]["coding_rate4"]				| 5;
 
+	conf.ptt.active					= data["ptt_output"]["active"]				| false;
+	conf.ptt.io_pin					= data["ptt_output"]["io_pin"]				| 4;
+	conf.ptt.start_delay			= data["ptt_output"]["start_delay"]			| 0;
+	conf.ptt.end_delay				= data["ptt_output"]["end_delay"]			| 0;
+	conf.ptt.reverse				= data["ptt_output"]["reverse"]				| false;
+
 	return conf;
 }
 
@@ -105,6 +111,12 @@ void ConfigurationManagement::writeConfiguration(Configuration conf)
 	data["lora"]["signal_bandwidth"]		= conf.lora.signalBandwidth;
 	data["lora"]["coding_rate4"]			= conf.lora.codingRate4;
 	
+	data["ptt_out"]["active"]				= conf.ptt.active;
+	data["ptt_out"]["io_pin"] 				= conf.ptt.io_pin;
+	data["ptt_out"]["start_delay"]			= conf.ptt.start_delay;
+	data["ptt_out"]["end_delay"]			= conf.ptt.end_delay;
+	data["ptt_out"]["reverse"] 				= conf.ptt.reverse;
+
 	serializeJson(data, file);
 	file.close();
 }

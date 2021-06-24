@@ -47,6 +47,18 @@ public:
 		int codingRate4;
 	};
 
+	class PTT
+	{
+		public:
+		PTT() :  active(false), io_pin(4), start_delay(0), end_delay(0), reverse(false) {}
+
+		bool active;
+		int io_pin;
+		int start_delay;
+		int end_delay;
+		bool reverse;
+	};
+
 	Configuration() : callsign("NOCALL-10"), debug(false), enhance_precision(true) {};
 
 	String callsign;
@@ -55,6 +67,7 @@ public:
 	Beacon beacon;
 	Smart_Beacon smart_beacon;
 	LoRa lora;
+	PTT ptt;
 };
 
 class ConfigurationManagement
