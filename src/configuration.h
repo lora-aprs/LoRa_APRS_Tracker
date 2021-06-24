@@ -47,7 +47,7 @@ public:
 		int codingRate4;
 	};
 
-	Configuration() : callsign("NOCALL-10"), debug(false) {};
+	Configuration() : callsign("NOCALL-10"), debug(false), enhance_precision(true) {};
 
 	String callsign;
 	bool debug;
