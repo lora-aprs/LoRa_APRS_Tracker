@@ -1,6 +1,7 @@
 {
 	"callsign":"NOCALL-7",
 	"debug": false,
+	"enhance_precision": true,
 	"beacon":
 	{
 		"message":"LoRa Tracker",

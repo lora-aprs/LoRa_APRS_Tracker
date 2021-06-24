@@ -43,7 +43,7 @@ Configuration ConfigurationManagement::readConfiguration()
 	if(data.containsKey("callsign"))
 		conf.callsign				= data["callsign"].as<String>();
 	conf.debug						= data["debug"]								| false;
-
+	conf.enhance_precision			= data["enhance_precision"]					| false;
 	if(data.containsKey("beacon") && data["beacon"].containsKey("message"))
 		conf.beacon.message			= data["beacon"]["message"].as<String>();
 	conf.beacon.timeout				= data["beacon"]["timeout"]					| 1;
@@ -90,6 +90,7 @@ void ConfigurationManagement::writeConfiguration(Configuration conf)
 
 	data["callsign"]						= conf.callsign;
 	data["debug"]							= conf.debug;
+	data["enhance_precision"]				= conf.enhance_precision;
 	data["beacon"]["message"]				= conf.beacon.message;
 	data["beacon"]["timeout"]				= conf.beacon.timeout;
 	data["beacon"]["symbol"]				= conf.beacon.symbol;
