@@ -51,6 +51,7 @@ public:
 
 	String callsign;
 	bool debug;
+	bool enhance_precision;
 	Beacon beacon;
 	Smart_Beacon smart_beacon;
 	LoRa lora;
