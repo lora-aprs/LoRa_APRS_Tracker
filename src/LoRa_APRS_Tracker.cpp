@@ -24,6 +24,9 @@ void setup_gps();
 
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
+String create_lat_aprs_dao(RawDegrees lat);
+String create_long_aprs_dao(RawDegrees lng);
+String create_dao_aprs(RawDegrees lat, RawDegrees lng);
 String createDateString(time_t t);
 String createTimeString(time_t t);
 String getSmartBeaconState();
@@ -182,10 +185,21 @@ void loop()
 		nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (Config.beacon.timeout * SECS_PER_MIN));
 
 		APRSMessage msg;
+		String lat;
+		String lng;
+		String dao;
+
 		msg.setSource(Config.callsign);
 		msg.setDestination("APLT00-1");
-		String lat = create_lat_aprs(gps.location.rawLat());
-		String lng = create_long_aprs(gps.location.rawLng());
+
+		if (!Config.enhance_precision){
+			lat = create_lat_aprs(gps.location.rawLat());
+			lng = create_long_aprs(gps.location.rawLng());
+		} else {
+			lat = create_lat_aprs_dao(gps.location.rawLat());
+			lng = create_long_aprs_dao(gps.location.rawLng());
+			dao = create_dao_aprs(gps.location.rawLat(), gps.location.rawLng());
+		}
 
 		String alt = "";
 		int alt_int = max(-99999, min(999999, (int)gps.altitude.feet()));
@@ -240,6 +254,11 @@ void loop()
 		{
 			aprsmsg += " -  _Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA";
 		}
+
+		if (Config.enhance_precision){
+			aprsmsg += " " + dao;
+		}
+
 		msg.getAPRSBody()->setData(aprsmsg);
 		String data = msg.encode();
 		logPrintlnD(data);
@@ -361,6 +380,21 @@ String create_lat_aprs(RawDegrees lat)
 	return lat_str;
 }
 
+String create_lat_aprs_dao(RawDegrees lat)
+{
+	//round to 4 digits and cut the last 2
+	char str[20];
+	char n_s = 'N';
+	if(lat.negative)
+	{
+		n_s = 'S';
+	}
+	sprintf(str, "%02d%07.4f%c", lat.deg, lat.billionths / 1000000000.0 * 60.0, n_s);
+	String lat_str(str);
+	lat_str.remove(7,2);
+	return lat_str;
+}
+
 String create_long_aprs(RawDegrees lng)
 {
 	char str[20];
@@ -372,6 +406,49 @@ String create_long_aprs(RawDegrees lng)
 	sprintf(str, "%03d%05.2f%c", lng.deg, lng.billionths / 1000000000.0 * 60.0, e_w);
 	String lng_str(str);
 	return lng_str;
+}
+
+String create_long_aprs_dao(RawDegrees lng)
+{
+	//round to 4 digits and cut the last 2
+	char str[20];
+	char e_w = 'E';
+	if(lng.negative)
+	{
+		e_w = 'W';
+	}
+	sprintf(str, "%03d%07.4f%c", lng.deg, lng.billionths / 1000000000.0 * 60.0, e_w);
+	String lng_str(str);
+	lng_str.remove(8,2);
+	return lng_str;
+}
+
+String create_dao_aprs(RawDegrees lat, RawDegrees lng)
+{
+	// !DAO! extension, use Base91 format for best precision
+    // /1.1 : scale from 0-99 to 0-90 for base91, int(... + 0.5): round to nearest integer
+	// https://metacpan.org/dist/Ham-APRS-FAP/source/FAP.pm
+	// http://www.aprs.org/aprs12/datum.txt
+	//
+	// TODO: optimize ugly float to char to string to int conversion?
+
+	char str[10];
+	char lat_str[10];
+	char lng_str[10];
+
+	sprintf(lat_str, "%07.4f", lat.billionths / 1000000000.0 * 60.0);
+	sprintf(lng_str, "%07.4f", lng.billionths / 1000000000.0 * 60.0);
+
+	String lat_dao(lat_str);
+	String lng_dao(lng_str);
+	int lat_int = lat_dao.substring(5,7).toInt();
+	int lng_int = lng_dao.substring(5,7).toInt();
+	char lat_char = char(int((lat_int/1.1 + 0.5) + 33));
+	char lng_char = char(int((lng_int/1.1 + 0.5) + 33));
+
+	sprintf(str, "!w%c%c!", lat_char, lng_char);
+	String dao_str(str);
+	return dao_str;
 }
 
 String createDateString(time_t t)
