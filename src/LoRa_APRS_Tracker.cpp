@@ -60,6 +60,12 @@ void setup()
 	setup_gps();
 	setup_lora();
 
+	if (Config.ptt.active)
+	{
+		pinMode(Config.ptt.io_pin, OUTPUT);
+		digitalWrite(Config.ptt.io_pin, Config.ptt.reverse ? HIGH : LOW);
+	}
+
 	// make sure wifi and bt is off as we don't need it:
 	WiFi.mode(WIFI_OFF);
 	btStop();
@@ -244,6 +250,13 @@ void loop()
 		String data = msg.encode();
 		logPrintlnD(data);
 		show_display("<< TX >>", data);
+
+		if (Config.ptt.active)
+		{
+			digitalWrite(Config.ptt.io_pin, Config.ptt.reverse ? LOW : HIGH);
+			delay(Config.ptt.start_delay);
+		}
+
 		LoRa.beginPacket();
 		// Header:
 		LoRa.write('<');
@@ -260,6 +273,12 @@ void loop()
 			previousHeading = currentHeading;
 			lastTxdistance = 0.0;
 			lastTxTime = millis();
+		}
+
+		if (Config.ptt.active)
+		{
+			delay(Config.ptt.end_delay);
+			digitalWrite(Config.ptt.io_pin, Config.ptt.reverse ? HIGH : LOW);
 		}
 	}
 
