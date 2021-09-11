@@ -69,6 +69,8 @@ void setup()
 		digitalWrite(Config.ptt.io_pin, Config.ptt.reverse ? HIGH : LOW);
 	}
 
+    pinMode(38, INPUT);
+
 	// make sure wifi and bt is off as we don't need it:
 	WiFi.mode(WIFI_OFF);
 	btStop();
@@ -183,6 +185,11 @@ void loop()
 				}
 			}
 		}
+	}
+
+    if (!digitalRead(38))
+	{
+        send_update=true;
 	}
 
 	if(send_update && gps_loc_update)
