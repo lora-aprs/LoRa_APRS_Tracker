@@ -30,6 +30,18 @@ void PowerManagement::deactivateLoRa()
 }
 
 // cppcheck-suppress unusedFunction
+void PowerManagement::disableChgLed()
+{
+	axp.setChgLEDMode(AXP20X_LED_OFF);
+}
+
+// cppcheck-suppress unusedFunction
+void PowerManagement::enableChgLed()
+{
+	axp.setChgLEDMode(AXP20X_LED_LOW_LEVEL);
+}
+
+// cppcheck-suppress unusedFunction
 void PowerManagement::activateGPS()
 {
 	axp.setPowerOutPut(AXP192_LDO3, AXP202_ON);
@@ -88,4 +100,9 @@ double PowerManagement::getBatteryChargeDischargeCurrent()
 bool PowerManagement::isBatteryConnect()
 {
 	return axp.isBatteryConnect();
+}
+
+bool PowerManagement::isChargeing()
+{
+	return axp.isChargeing();
 }

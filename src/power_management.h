@@ -10,6 +10,9 @@ public:
 	PowerManagement();
 	bool begin(TwoWire & port);
 
+    void enableChgLed();
+    void disableChgLed();
+
 	void activateLoRa();
 	void deactivateLoRa();
 
@@ -26,6 +29,7 @@ public:
 	double getBatteryChargeDischargeCurrent();
 
 	bool isBatteryConnect();
+	bool isChargeing();
 
 private:
 	AXP20X_Class axp;

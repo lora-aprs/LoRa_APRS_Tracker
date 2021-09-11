@@ -152,6 +152,14 @@ void loop()
 		batteryVoltage = String(powerManagement.getBatteryVoltage(), 2);
 		batteryChargeCurrent = String(powerManagement.getBatteryChargeDischargeCurrent(), 0);
 	}
+	if (powerManagement.isChargeing())
+	{
+		powerManagement.enableChgLed();
+	}
+	else
+	{
+		powerManagement.disableChgLed();
+	}
 #endif
 
 	if(!send_update && gps_loc_update && Config.smart_beacon.active)
