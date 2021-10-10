@@ -394,10 +394,19 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
  
 	static char buf[6];
 	min_nnnnn = min_nnnnn * 0.006;
-	if ( ((min_nnnnn / (high_precision ? 1 : 100)) % 10) >= 5 && min_nnnnn < (6000000 - ((high_precision ? 1 : 100)*5)) ) {
-		// round up. Avoid overflow (59.999999 should never become 60.0 or more)
-		min_nnnnn = min_nnnnn + (high_precision ? 1 : 100)*5;
+
+	if (high_precision) {
+		if ((min_nnnnn % 10) >= 5 && min_nnnnn < 6000000 - 5) {
+			// round up. Avoid overflow (59.999999 should never become 60.0 or more)
+			min_nnnnn = min_nnnnn + 5;
+		}
+	} else {
+		if ((min_nnnnn % 1000) >= 500 && min_nnnnn < (6000000 - 500)) {
+			// round up. Avoid overflow (59.9999 should never become 60.0 or more)
+			min_nnnnn = min_nnnnn + 500;
+		}
 	}
+
 	if (high_precision < 2)
 		sprintf(buf, "%02u.%02u", (unsigned int ) ((min_nnnnn / 100000) % 100), (unsigned int ) ((min_nnnnn / 1000) % 100));
 	else
