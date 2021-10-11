@@ -11,12 +11,13 @@ public:
 	class Beacon
 	{
 	public:
-		Beacon() : message("LoRa Tracker, Info: github.com/lora-aprs/LoRa_APRS_Tracker"), timeout(1), symbol("["), overlay("/") {}
+		Beacon() : message("LoRa Tracker, Info: github.com/lora-aprs/LoRa_APRS_Tracker"), timeout(1), symbol("["), overlay("/"), button_tx(false) {}
 
 		String message;
 		int timeout;
 		String symbol;
 		String overlay; 
+		bool button_tx;
 	};
 
 	class Smart_Beacon

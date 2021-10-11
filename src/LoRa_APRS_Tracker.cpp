@@ -4,6 +4,7 @@
 #include <TinyGPS++.h>
 #include <TimeLib.h>
 #include <WiFi.h>
+#include <OneButton.h>
 #include "display.h"
 #include "pins.h"
 #include "power_management.h"
@@ -12,6 +13,7 @@ Configuration Config;
 
 #include "power_management.h"
 PowerManagement powerManagement;
+OneButton userButton = OneButton(BUTTON_PIN, true, true);
 
 #include "logger.h"
 
@@ -31,6 +33,9 @@ String createDateString(time_t t);
 String createTimeString(time_t t);
 String getSmartBeaconState();
 String padding(unsigned int number, unsigned int width);
+
+static bool send_update = true;
+static void handle_tx_click();
 
 // cppcheck-suppress unusedFunction
 void setup()
@@ -73,6 +78,12 @@ void setup()
 	WiFi.mode(WIFI_OFF);
 	btStop();
 
+	if (Config.beacon.button_tx)
+	{
+		// attach TX action to user button (defined by BUTTON_PIN)
+		userButton.attachClick(handle_tx_click);
+	}
+
 	logPrintlnI("Smart Beacon is " + getSmartBeaconState());
 	show_display("INFO", "Smart Beacon is " + getSmartBeaconState(), 1000);
 	logPrintlnI("setup done...");
@@ -82,6 +93,8 @@ void setup()
 // cppcheck-suppress unusedFunction
 void loop()
 {
+	userButton.tick();
+
 	if(Config.debug)
 	{
 		while(Serial.available() > 0)
@@ -104,7 +117,6 @@ void loop()
 	bool gps_time_update = gps.time.isUpdated();
 	bool gps_loc_update = gps.location.isUpdated();
 	static time_t nextBeaconTimeStamp = -1;
-	static bool send_update = true;
 
 	static double currentHeading = 0;
 	static double previousHeading = 0;
@@ -413,6 +425,11 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 		sprintf(buf, "%c", (char) ((min_nnnnn % 1000) / 11) + 33);
 		// Like to verify? type in python for i.e. RawDegrees billions 566688333: i = 566688333; "%c" % (int(((i*.0006+0.5) % 100)/1.1) +33)
 	return buf;
+}
+
+static void handle_tx_click()
+{
+	send_update = true;
 }
 
 String create_lat_aprs(RawDegrees lat)

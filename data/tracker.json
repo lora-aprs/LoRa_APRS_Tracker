@@ -6,6 +6,7 @@
 	{
 		"message":"LoRa Tracker",
 		"timeout": 1,
+		"button_tx": false,
 		"symbol": "[",
 		"overlay": "/"
 	},

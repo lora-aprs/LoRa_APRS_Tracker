@@ -51,6 +51,8 @@ Configuration ConfigurationManagement::readConfiguration()
 		conf.beacon.symbol			= data["beacon"]["symbol"].as<String>();
 	if(data.containsKey("beacon") && data["beacon"].containsKey("overlay"))
 		conf.beacon.overlay			= data["beacon"]["overlay"].as<String>() ;
+	if(data.containsKey("beacon") && data["beacon"].containsKey("button_tx"))
+		conf.beacon.button_tx			= data["beacon"]["button_tx"]			| false;
 
 	conf.smart_beacon.active		= data["smart_beacon"]["active"]			| false;
 	conf.smart_beacon.turn_min		= data["smart_beacon"]["turn_min"]			| 25;
@@ -95,6 +97,7 @@ void ConfigurationManagement::writeConfiguration(Configuration conf)
 	data["beacon"]["timeout"]				= conf.beacon.timeout;
 	data["beacon"]["symbol"]				= conf.beacon.symbol;
 	data["beacon"]["overlay"]				= conf.beacon.overlay;
+	data["beacon"]["button_tx"]				= conf.beacon.button_tx;
 	data["smart_beacon"]["active"]			= conf.smart_beacon.active;  
 	data["smart_beacon"]["turn_min"] 		= conf.smart_beacon.turn_min;	
 	data["smart_beacon"]["slow_rate"]		= conf.smart_beacon.slow_rate;	
