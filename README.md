@@ -33,6 +33,7 @@ The best success is to use PlatformIO (and it is the only platform where I can s
 ### Configuration
 
 * You can find all nessesary settings to change for your configuration in **data/tracker.json**.
+* The `button_tx` setting enables manual triggering of the beacon using the middle button on the T-Beam.
 * To upload it to your board you have to do this via **Upload File System image** in PlatformIO!
 * To find the 'Upload File System image' click the PlatformIO symbol (the little alien) on the left side, choos your configuration, click on 'Platform' and search for 'Upload File System image'.
 
