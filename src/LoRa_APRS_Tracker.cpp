@@ -386,6 +386,35 @@ void setup_gps()
 	ss.begin(9600, SERIAL_8N1, GPS_TX, GPS_RX);
 }
 
+char *s_min_nn(uint32_t min_nnnnn, int high_precision)
+{
+	/* min_nnnnn: RawDegrees billionths is uint32_t by definition and is n'telth degree (-> *= 6 -> nn.mmmmmm minutes)
+	 * high_precision: 0: round at decimal position 2. 1: round at decimal position 4. 2: return decimal position 3-4 as base91 encoded char
+	 */
+ 
+	static char buf[6];
+	min_nnnnn = min_nnnnn * 0.006;
+
+	if (high_precision) {
+		if ((min_nnnnn % 10) >= 5 && min_nnnnn < 6000000 - 5) {
+			// round up. Avoid overflow (59.999999 should never become 60.0 or more)
+			min_nnnnn = min_nnnnn + 5;
+		}
+	} else {
+		if ((min_nnnnn % 1000) >= 500 && min_nnnnn < (6000000 - 500)) {
+			// round up. Avoid overflow (59.9999 should never become 60.0 or more)
+			min_nnnnn = min_nnnnn + 500;
+		}
+	}
+
+	if (high_precision < 2)
+		sprintf(buf, "%02u.%02u", (unsigned int ) ((min_nnnnn / 100000) % 100), (unsigned int ) ((min_nnnnn / 1000) % 100));
+	else
+		sprintf(buf, "%c", (char) ((min_nnnnn % 1000) / 11) + 33);
+		// Like to verify? type in python for i.e. RawDegrees billions 566688333: i = 566688333; "%c" % (int(((i*.0006+0.5) % 100)/1.1) +33)
+	return buf;
+}
+
 String create_lat_aprs(RawDegrees lat)
 {
 	char str[20];
@@ -394,7 +423,9 @@ String create_lat_aprs(RawDegrees lat)
 	{
 		n_s = 'S';
 	}
-	sprintf(str, "%02d%05.2f%c", lat.deg, lat.billionths / 1000000000.0 * 60.0, n_s);
+	// we like sprintf's float up-rounding.
+	// but sprintf % may round to 60.00 -> 5360.00 (53° 60min is a wrong notation ;)
+	sprintf(str, "%02d%s%c", lat.deg, s_min_nn(lat.billionths, 0), n_s);
 	String lat_str(str);
 	return lat_str;
 }
@@ -408,9 +439,10 @@ String create_lat_aprs_dao(RawDegrees lat)
 	{
 		n_s = 'S';
 	}
-	sprintf(str, "%02d%07.4f%c", lat.deg, lat.billionths / 1000000000.0 * 60.0, n_s);
+	// we need sprintf's float up-rounding. Must be the same principle as in aprs_dao(). We cut off the string to two decimals afterwards.
+	// but sprintf % may round to 60.0000 -> 5360.0000 (53° 60min is a wrong notation ;)
+	sprintf(str, "%02d%s%c", lat.deg, s_min_nn(lat.billionths, 1 /* high precision */), n_s);
 	String lat_str(str);
-	lat_str.remove(7,2);
 	return lat_str;
 }
 
@@ -422,7 +454,7 @@ String create_long_aprs(RawDegrees lng)
 	{
 		e_w = 'W';
 	}
-	sprintf(str, "%03d%05.2f%c", lng.deg, lng.billionths / 1000000000.0 * 60.0, e_w);
+	sprintf(str, "%03d%s%c", lng.deg, s_min_nn(lng.billionths, 0), e_w);
 	String lng_str(str);
 	return lng_str;
 }
@@ -436,36 +468,22 @@ String create_long_aprs_dao(RawDegrees lng)
 	{
 		e_w = 'W';
 	}
-	sprintf(str, "%03d%07.4f%c", lng.deg, lng.billionths / 1000000000.0 * 60.0, e_w);
+	sprintf(str, "%03d%s%c", lng.deg, s_min_nn(lng.billionths, 1 /* high precision */), e_w);
 	String lng_str(str);
-	lng_str.remove(8,2);
 	return lng_str;
 }
 
 String create_dao_aprs(RawDegrees lat, RawDegrees lng)
 {
 	// !DAO! extension, use Base91 format for best precision
-    // /1.1 : scale from 0-99 to 0-90 for base91, int(... + 0.5): round to nearest integer
+	// /1.1 : scale from 0-99 to 0-90 for base91, int(... + 0.5): round to nearest integer
 	// https://metacpan.org/dist/Ham-APRS-FAP/source/FAP.pm
 	// http://www.aprs.org/aprs12/datum.txt
 	//
-	// TODO: optimize ugly float to char to string to int conversion?
 
 	char str[10];
-	char lat_str[10];
-	char lng_str[10];
-
-	sprintf(lat_str, "%07.4f", lat.billionths / 1000000000.0 * 60.0);
-	sprintf(lng_str, "%07.4f", lng.billionths / 1000000000.0 * 60.0);
-
-	String lat_dao(lat_str);
-	String lng_dao(lng_str);
-	int lat_int = lat_dao.substring(5,7).toInt();
-	int lng_int = lng_dao.substring(5,7).toInt();
-	char lat_char = char(int((lat_int/1.1 + 0.5) + 33));
-	char lng_char = char(int((lng_int/1.1 + 0.5) + 33));
-
-	sprintf(str, "!w%c%c!", lat_char, lng_char);
+	sprintf(str, "!w%s", s_min_nn(lat.billionths, 2));
+	sprintf(str+3, "%s!", s_min_nn(lng.billionths, 2));
 	String dao_str(str);
 	return dao_str;
 }
@@ -477,10 +495,6 @@ String createDateString(time_t t)
 
 String createTimeString(time_t t)
 {
-	if(t == -1)
-	{
-		return String("00:00:00");
-	}
 	return String(padding(hour(t), 2) + "." + padding(minute(t), 2) + "." + padding(second(t), 2));
 }
 
