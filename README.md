@@ -11,9 +11,11 @@ You can use one of the Lora32 boards:
 
 * TTGO T-Beam V0.7 (433MHz SX1278)
 * TTGO T-Beam V1 (433MHz SX1278)
+* TTGO T-Beam V1 (868/915MHz, SX1276)
 
-This boards cost around 30 Euros, they are very cheap but perfect for an LoRa iGate.
-Keep in minde: you need a 433MHz version!
+These boards cost around 30 Euros, they are very cheap but perfect for an LoRa tracker/iGate.
+
+It has been successfully tested within the **US902-928** range with compatible 868/915 MHz TTGO devices. See the configuration section below.
 
 ## Compiling and configuration
 
@@ -36,6 +38,22 @@ The best success is to use PlatformIO (and it is the only platform where I can s
 * The `button_tx` setting enables manual triggering of the beacon using the middle button on the T-Beam.
 * To upload it to your board you have to do this via **Upload File System image** in PlatformIO!
 * To find the 'Upload File System image' click the PlatformIO symbol (the little alien) on the left side, choos your configuration, click on 'Platform' and search for 'Upload File System image'.
+
+### The US902-928 band
+
+To get started with a T-Beam device working on the **US902-928** band, you need to:
+* Tune the tracker frequency to the desired value from that band:
+  ```
+  "lora":
+  {
+		"frequency_rx": 913880000,
+		"frequency_tx": 913880000,
+		...
+  }
+  ```
+* Use the same values to configure the **LoRa iGate** on the file [data/is-cfg.json](https://github.com/lora-aprs/LoRa_APRS_iGate/blob/master/data/is-cfg.json#L37).
+
+The above example uses LoRa channel #6 (913.88MHz), but *use it at your own risk* and make sure to respect local regulations!
 
 ## LoRa iGate
 
