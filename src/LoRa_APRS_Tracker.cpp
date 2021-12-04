@@ -187,14 +187,14 @@ void loop() {
 
   if (send_update && gps_loc_update) {
     send_update         = false;
-    nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (Config.GetCurrentBeacon().timeout * SECS_PER_MIN));
+    Configuration::Beacon beacon = Config.GetCurrentBeacon();
+
+    nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (beacon.timeout * SECS_PER_MIN));
 
     APRSMessage msg;
     String      lat;
     String      lng;
     String      dao;
-
-    Configuration::Beacon beacon = Config.GetCurrentBeacon();
 
     msg.setSource(beacon.callsign);
     msg.setDestination("APLT00-1");
