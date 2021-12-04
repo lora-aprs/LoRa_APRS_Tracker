@@ -33,19 +33,26 @@ Configuration ConfigurationManagement::readConfiguration() {
   file.close();
 
   Configuration conf;
-  if (data.containsKey("callsign"))
-    conf.callsign = data["callsign"].as<String>();
+
   conf.debug             = data["debug"] | false;
   conf.enhance_precision = data["enhance_precision"] | false;
-  if (data.containsKey("beacon") && data["beacon"].containsKey("message"))
-    conf.beacon.message = data["beacon"]["message"].as<String>();
-  conf.beacon.timeout = data["beacon"]["timeout"] | 1;
-  if (data.containsKey("beacon") && data["beacon"].containsKey("symbol"))
-    conf.beacon.symbol = data["beacon"]["symbol"].as<String>();
-  if (data.containsKey("beacon") && data["beacon"].containsKey("overlay"))
-    conf.beacon.overlay = data["beacon"]["overlay"].as<String>();
-  if (data.containsKey("beacon") && data["beacon"].containsKey("button_tx"))
-    conf.beacon.button_tx = data["beacon"]["button_tx"] | false;
+
+  JsonArray beacons = data["beacons"].as<JsonArray>();
+  for (JsonVariant v : beacons) {
+    Configuration::Beacon beacon;
+
+    if (v.containsKey("callsign"))
+      beacon.callsign = v["callsign"].as<String>();
+    if (v.containsKey("message"))
+      beacon.message = v["message"].as<String>();
+    beacon.timeout = v["timeout"] | 1;
+    if (v.containsKey("symbol"))
+      beacon.symbol = v["symbol"].as<String>();
+    if (v.containsKey("overlay"))
+      beacon.overlay = v["overlay"].as<String>();
+
+    conf.beacons.push_back(beacon);
+  }
 
   conf.smart_beacon.active      = data["smart_beacon"]["active"] | false;
   conf.smart_beacon.turn_min    = data["smart_beacon"]["turn_min"] | 25;
@@ -55,6 +62,9 @@ Configuration ConfigurationManagement::readConfiguration() {
   conf.smart_beacon.fast_speed  = data["smart_beacon"]["fast_speed"] | 100;
   conf.smart_beacon.min_tx_dist = data["smart_beacon"]["min_tx_dist"] | 100;
   conf.smart_beacon.min_bcn     = data["smart_beacon"]["min_bcn"] | 5;
+  
+  conf.button.tx            = data["button"]["tx"] | false;
+  conf.button.alt_message   = data["button"]["alt_message"] | false;
 
   conf.lora.frequencyRx     = data["lora"]["frequency_rx"] | 433775000;
   conf.lora.frequencyTx     = data["lora"]["frequency_tx"] | 433775000;
@@ -81,14 +91,22 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
   }
   DynamicJsonDocument data(2048);
 
-  data["callsign"]                    = conf.callsign;
+  JsonArray beacons = data.createNestedArray("beacons");
+  for (Configuration::Beacon beacon : conf.beacons) {
+    JsonObject v  = beacons.createNestedObject();
+    v["callsign"] = beacon.callsign;
+    v["message"]  = beacon.message;
+    v["timeout"]  = beacon.timeout;
+    v["symbol"]   = beacon.symbol;
+    v["overlay"]  = beacon.overlay;
+  }
+
   data["debug"]                       = conf.debug;
   data["enhance_precision"]           = conf.enhance_precision;
-  data["beacon"]["message"]           = conf.beacon.message;
-  data["beacon"]["timeout"]           = conf.beacon.timeout;
-  data["beacon"]["symbol"]            = conf.beacon.symbol;
-  data["beacon"]["overlay"]           = conf.beacon.overlay;
-  data["beacon"]["button_tx"]         = conf.beacon.button_tx;
+
+  data["button"]["tx"]                = conf.button.tx;
+  data["button"]["alt_message"]       = conf.button.alt_message;
+
   data["smart_beacon"]["active"]      = conf.smart_beacon.active;
   data["smart_beacon"]["turn_min"]    = conf.smart_beacon.turn_min;
   data["smart_beacon"]["slow_rate"]   = conf.smart_beacon.slow_rate;
@@ -113,4 +131,17 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
 
   serializeJson(data, file);
   file.close();
+}
+
+Configuration::Beacon Configuration::GetCurrentBeacon() {
+  auto iterator = this->beacons.begin();
+  std::advance(iterator, this->current_beacon_index);
+  return *iterator;
+}
+
+Configuration::Beacon Configuration::SetNextBeacon() {
+  this->current_beacon_index++;
+  if (this->current_beacon_index >= this->beacons.size())
+    this->current_beacon_index = 0;
+  return this->GetCurrentBeacon();
 }

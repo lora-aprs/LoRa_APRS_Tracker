@@ -1,41 +1,42 @@
 {
-	"callsign":"NOCALL-7",
 	"debug": false,
 	"enhance_precision": true,
-	"beacon":
-	{
-		"message":"LoRa Tracker",
-		"timeout": 1,
-		"button_tx": false,
-		"symbol": "[",
-		"overlay": "/"
+	"beacons": [
+		{
+			"callsign": "NOCALL-7",
+			"message": "LoRa Tracker",
+			"timeout": 1,
+			"symbol": "[",
+			"overlay": "/"
+		}
+	],
+	"button": {
+		"tx": true,
+		"alt_message": true
 	},
-	"smart_beacon":
-	{
-		"active":true,
-		"turn_min":25,
-		"slow_rate":300,
-		"slow_speed":10,
-		"fast_rate":60,
-		"fast_speed":100,
-		"min_tx_dist":100,
-		"min_bcn":5
+	"smart_beacon": {
+		"active": true,
+		"turn_min": 25,
+		"slow_rate": 300,
+		"slow_speed": 10,
+		"fast_rate": 60,
+		"fast_speed": 100,
+		"min_tx_dist": 100,
+		"min_bcn": 5,
 	},
-	"lora":
-	{
-		"frequency_rx":433775000,
-		"frequency_tx":433775000,
-		"power":20,
-		"spreading_factor":12,
-		"signal_bandwidth":125000,
-		"coding_rate4":5
+	"lora": {
+		"frequency_rx": 433775000,
+		"frequency_tx": 433775000,
+		"power": 20,
+		"spreading_factor": 12,
+		"signal_bandwidth": 125000,
+		"coding_rate4": 5
 	},
-	"ptt_output":
-	{
-		"active":false,
+	"ptt_output": {
+		"active": false,
 		"io_pin": 4,
 		"start_delay": 0,
 		"end_delay": 0,
-		"reverse":false
+		"reverse": false
 	}
 }

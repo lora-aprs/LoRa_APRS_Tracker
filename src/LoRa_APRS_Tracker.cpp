@@ -40,6 +40,11 @@ static void handle_tx_click() {
   send_update = true;
 }
 
+static void handle_next_beacon() {
+  Configuration::Beacon beacon = Config.SetNextBeacon();
+  show_display(beacon.callsign, beacon.message, 2000);
+}
+
 // cppcheck-suppress unusedFunction
 void setup() {
   Serial.begin(115200);
@@ -76,9 +81,13 @@ void setup() {
   WiFi.mode(WIFI_OFF);
   btStop();
 
-  if (Config.beacon.button_tx) {
+  if (Config.button.tx) {
     // attach TX action to user button (defined by BUTTON_PIN)
     userButton.attachClick(handle_tx_click);
+  }
+
+  if (Config.button.alt_message) {
+    userButton.attachLongPressStart(handle_next_beacon);
   }
 
   logPrintlnI("Smart Beacon is " + getSmartBeaconState());
@@ -124,7 +133,7 @@ void loop() {
         rate_limit_message_text = 0;
       } else {
         // enforce message text every n's Config.beacon.timeout frame
-        if (Config.beacon.timeout * rate_limit_message_text > 30) {
+        if (Config.GetCurrentBeacon().timeout * rate_limit_message_text > 30) {
           rate_limit_message_text = 0;
         }
       }
@@ -178,14 +187,16 @@ void loop() {
 
   if (send_update && gps_loc_update) {
     send_update         = false;
-    nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (Config.beacon.timeout * SECS_PER_MIN));
+    nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (Config.GetCurrentBeacon().timeout * SECS_PER_MIN));
 
     APRSMessage msg;
     String      lat;
     String      lng;
     String      dao;
 
-    msg.setSource(Config.callsign);
+    Configuration::Beacon beacon = Config.GetCurrentBeacon();
+
+    msg.setSource(beacon.callsign);
     msg.setDestination("APLT00-1");
 
     if (!Config.enhance_precision) {
@@ -232,13 +243,13 @@ void loop() {
     }
 
     String aprsmsg;
-    aprsmsg = "!" + lat + Config.beacon.overlay + lng + Config.beacon.symbol + course_and_speed + alt;
+    aprsmsg = "!" + lat + beacon.overlay + lng + beacon.symbol + course_and_speed + alt;
     // message_text every 10's packet (i.e. if we have beacon rate 1min at high
     // speed -> every 10min). May be enforced above (at expirey of smart beacon
     // rate (i.e. every 30min), or every third packet on static rate (i.e.
     // static rate 10 -> every third packet)
     if (!(rate_limit_message_text++ % 10)) {
-      aprsmsg += Config.beacon.message;
+      aprsmsg += beacon.message;
     }
     if (BatteryIsConnected) {
       aprsmsg += " -  _Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA";
@@ -282,7 +293,8 @@ void loop() {
   }
 
   if (gps_time_update) {
-    show_display(Config.callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (Config.smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
+
+    show_display(Config.GetCurrentBeacon().callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (Config.smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
 
     if (Config.smart_beacon.active) {
       // Change the Tx internal based on the current speed
@@ -316,7 +328,7 @@ void loop() {
 void load_config() {
   ConfigurationManagement confmg("/tracker.json");
   Config = confmg.readConfiguration();
-  if (Config.callsign == "NOCALL-10") {
+  if (Config.GetCurrentBeacon().callsign == "NOCALL-10") {
     logPrintlnE("You have to change your settings in 'data/tracker.json' and "
                 "upload it via \"Upload File System image\"!");
     show_display("ERROR", "You have to change your settings in 'data/tracker.json' and "
