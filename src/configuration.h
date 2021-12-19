@@ -16,6 +16,7 @@ public:
     String callsign;
     String path;
     String message;
+    String path;
     int    timeout;
     String symbol;
     String overlay;
