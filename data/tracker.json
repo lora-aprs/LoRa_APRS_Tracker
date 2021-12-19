@@ -1,23 +1,21 @@
 {
 	"debug": false,
 	"enhance_precision": true,
-	"beacons": 
-	[
+	"beacons": [
 		{
 			"callsign": "NOCALL-7",
+			"path": "WIDE1-1",
 			"message": "LoRa Tracker",
 			"timeout": 1,
 			"symbol": "[",
 			"overlay": "/"
 		}
 	],
-	"button": 
-	{
+	"button": {
 		"tx": true,
 		"alt_message": true
 	},
-	"smart_beacon": 
-	{
+	"smart_beacon": {
 		"active": true,
 		"turn_min": 25,
 		"slow_rate": 300,
@@ -27,8 +25,7 @@
 		"min_tx_dist": 100,
 		"min_bcn": 5
 	},
-	"lora": 
-	{
+	"lora": {
 		"frequency_rx": 433775000,
 		"frequency_tx": 433775000,
 		"power": 20,
@@ -36,8 +33,7 @@
 		"signal_bandwidth": 125000,
 		"coding_rate4": 5
 	},
-	"ptt_output": 
-	{
+	"ptt_output": {
 		"active": false,
 		"io_pin": 4,
 		"start_delay": 0,

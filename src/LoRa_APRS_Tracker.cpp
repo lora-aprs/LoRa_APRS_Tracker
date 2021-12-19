@@ -186,7 +186,7 @@ void loop() {
   }
 
   if (send_update && gps_loc_update) {
-    send_update         = false;
+    send_update                  = false;
     Configuration::Beacon beacon = Config.GetCurrentBeacon();
 
     nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (beacon.timeout * SECS_PER_MIN));
@@ -197,6 +197,7 @@ void loop() {
     String      dao;
 
     msg.setSource(beacon.callsign);
+    msg.setPath(beacon.path);
     msg.setDestination("APLT00-1");
 
     if (!Config.enhance_precision) {

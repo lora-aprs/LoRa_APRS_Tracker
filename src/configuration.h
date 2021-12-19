@@ -1,8 +1,8 @@
 #ifndef CONFIGURATION_H_
 #define CONFIGURATION_H_
 
-#include <list>
 #include <iterator>
+#include <list>
 
 #include <Arduino.h>
 
@@ -10,10 +10,11 @@ class Configuration {
 public:
   class Beacon {
   public:
-    Beacon() : callsign("NOCALL-10"), message("LoRa Tracker, Info: github.com/lora-aprs/LoRa_APRS_Tracker"), timeout(1), symbol("["), overlay("/") {
+    Beacon() : callsign("NOCALL-10"), path("WIDE1-1"), message("LoRa Tracker"), timeout(1), symbol("["), overlay("/") {
     }
 
     String callsign;
+    String path;
     String message;
     int    timeout;
     String symbol;
@@ -69,16 +70,16 @@ public:
     int  alt_message;
   };
 
-  Configuration() : debug(false), enhance_precision(true), current_beacon_index(0) {};
+  Configuration() : debug(false), enhance_precision(true), current_beacon_index(0){};
 
-  bool                debug;
-  bool                enhance_precision;
-  std::list<Beacon>   beacons;
-  int                 current_beacon_index;
-  Smart_Beacon        smart_beacon;
-  LoRa                lora;
-  PTT                 ptt;
-  Button              button;
+  bool              debug;
+  bool              enhance_precision;
+  std::list<Beacon> beacons;
+  int               current_beacon_index;
+  Smart_Beacon      smart_beacon;
+  LoRa              lora;
+  PTT               ptt;
+  Button            button;
 
   Beacon GetCurrentBeacon();
   Beacon SetNextBeacon();

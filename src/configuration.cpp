@@ -43,6 +43,8 @@ Configuration ConfigurationManagement::readConfiguration() {
 
     if (v.containsKey("callsign"))
       beacon.callsign = v["callsign"].as<String>();
+    if (v.containsKey("path"))
+      beacon.path = v["path"].as<String>();
     if (v.containsKey("message"))
       beacon.message = v["message"].as<String>();
     beacon.timeout = v["timeout"] | 1;
@@ -62,9 +64,9 @@ Configuration ConfigurationManagement::readConfiguration() {
   conf.smart_beacon.fast_speed  = data["smart_beacon"]["fast_speed"] | 100;
   conf.smart_beacon.min_tx_dist = data["smart_beacon"]["min_tx_dist"] | 100;
   conf.smart_beacon.min_bcn     = data["smart_beacon"]["min_bcn"] | 5;
-  
-  conf.button.tx            = data["button"]["tx"] | false;
-  conf.button.alt_message   = data["button"]["alt_message"] | false;
+
+  conf.button.tx          = data["button"]["tx"] | false;
+  conf.button.alt_message = data["button"]["alt_message"] | false;
 
   conf.lora.frequencyRx     = data["lora"]["frequency_rx"] | 433775000;
   conf.lora.frequencyTx     = data["lora"]["frequency_tx"] | 433775000;
@@ -95,17 +97,18 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
   for (Configuration::Beacon beacon : conf.beacons) {
     JsonObject v  = beacons.createNestedObject();
     v["callsign"] = beacon.callsign;
+    v["path"]     = beacon.path;
     v["message"]  = beacon.message;
     v["timeout"]  = beacon.timeout;
     v["symbol"]   = beacon.symbol;
     v["overlay"]  = beacon.overlay;
   }
 
-  data["debug"]                       = conf.debug;
-  data["enhance_precision"]           = conf.enhance_precision;
+  data["debug"]             = conf.debug;
+  data["enhance_precision"] = conf.enhance_precision;
 
-  data["button"]["tx"]                = conf.button.tx;
-  data["button"]["alt_message"]       = conf.button.alt_message;
+  data["button"]["tx"]          = conf.button.tx;
+  data["button"]["alt_message"] = conf.button.alt_message;
 
   data["smart_beacon"]["active"]      = conf.smart_beacon.active;
   data["smart_beacon"]["turn_min"]    = conf.smart_beacon.turn_min;
