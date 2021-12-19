@@ -39,6 +39,8 @@ Configuration ConfigurationManagement::readConfiguration() {
   conf.enhance_precision = data["enhance_precision"] | false;
   if (data.containsKey("beacon") && data["beacon"].containsKey("message"))
     conf.beacon.message = data["beacon"]["message"].as<String>();
+  if (data.containsKey("beacon") && data["beacon"].containsKey("path"))
+    conf.beacon.path = data["beacon"]["path"].as<String>();
   conf.beacon.timeout = data["beacon"]["timeout"] | 1;
   if (data.containsKey("beacon") && data["beacon"].containsKey("symbol"))
     conf.beacon.symbol = data["beacon"]["symbol"].as<String>();
@@ -85,6 +87,7 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
   data["debug"]                       = conf.debug;
   data["enhance_precision"]           = conf.enhance_precision;
   data["beacon"]["message"]           = conf.beacon.message;
+  data["beacon"]["path"]              = conf.beacon.path;
   data["beacon"]["timeout"]           = conf.beacon.timeout;
   data["beacon"]["symbol"]            = conf.beacon.symbol;
   data["beacon"]["overlay"]           = conf.beacon.overlay;

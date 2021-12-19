@@ -187,6 +187,7 @@ void loop() {
 
     msg.setSource(Config.callsign);
     msg.setDestination("APLT00-1");
+    msg.setPath(Config.beacon.path);
 
     if (!Config.enhance_precision) {
       lat = create_lat_aprs(gps.location.rawLat());
@@ -310,6 +311,7 @@ void loop() {
   if ((Config.debug == false) && (millis() > 5000 && gps.charsProcessed() < 10)) {
     logPrintlnE("No GPS frames detected! Try to reset the GPS Chip with this "
                 "firmware: https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset");
+    show_display("No GPS frames detected!", "Try to reset the GPS Chip", "https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset", 2000);
   }
 }
 

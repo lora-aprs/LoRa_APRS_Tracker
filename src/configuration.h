@@ -9,10 +9,11 @@ class Configuration {
 public:
   class Beacon {
   public:
-    Beacon() : message("LoRa Tracker, Info: github.com/lora-aprs/LoRa_APRS_Tracker"), timeout(1), symbol("["), overlay("/"), button_tx(false) {
+    Beacon() : message("LoRa Tracker"), path("WIDE1-1"), timeout(1), symbol("["), overlay("/"), button_tx(false) {
     }
 
     String message;
+    String path;
     int    timeout;
     String symbol;
     String overlay;
