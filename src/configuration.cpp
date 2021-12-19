@@ -34,8 +34,7 @@ Configuration ConfigurationManagement::readConfiguration() {
 
   Configuration conf;
 
-  conf.debug             = data["debug"] | false;
-  conf.enhance_precision = data["enhance_precision"] | false;
+  conf.debug = data["debug"] | false;
 
   JsonArray beacons = data["beacons"].as<JsonArray>();
   for (JsonVariant v : beacons) {
@@ -53,17 +52,19 @@ Configuration ConfigurationManagement::readConfiguration() {
     if (v.containsKey("overlay"))
       beacon.overlay = v["overlay"].as<String>();
 
+    beacon.smart_beacon.active      = v["smart_beacon"]["active"] | false;
+    beacon.smart_beacon.turn_min    = v["smart_beacon"]["turn_min"] | 25;
+    beacon.smart_beacon.slow_rate   = v["smart_beacon"]["slow_rate"] | 300;
+    beacon.smart_beacon.slow_speed  = v["smart_beacon"]["slow_speed"] | 10;
+    beacon.smart_beacon.fast_rate   = v["smart_beacon"]["fast_rate"] | 60;
+    beacon.smart_beacon.fast_speed  = v["smart_beacon"]["fast_speed"] | 100;
+    beacon.smart_beacon.min_tx_dist = v["smart_beacon"]["min_tx_dist"] | 100;
+    beacon.smart_beacon.min_bcn     = v["smart_beacon"]["min_bcn"] | 5;
+
+    beacon.enhance_precision = v["enhance_precision"] | false;
+
     conf.beacons.push_back(beacon);
   }
-
-  conf.smart_beacon.active      = data["smart_beacon"]["active"] | false;
-  conf.smart_beacon.turn_min    = data["smart_beacon"]["turn_min"] | 25;
-  conf.smart_beacon.slow_rate   = data["smart_beacon"]["slow_rate"] | 300;
-  conf.smart_beacon.slow_speed  = data["smart_beacon"]["slow_speed"] | 10;
-  conf.smart_beacon.fast_rate   = data["smart_beacon"]["fast_rate"] | 60;
-  conf.smart_beacon.fast_speed  = data["smart_beacon"]["fast_speed"] | 100;
-  conf.smart_beacon.min_tx_dist = data["smart_beacon"]["min_tx_dist"] | 100;
-  conf.smart_beacon.min_bcn     = data["smart_beacon"]["min_bcn"] | 5;
 
   conf.button.tx          = data["button"]["tx"] | false;
   conf.button.alt_message = data["button"]["alt_message"] | false;
@@ -102,22 +103,23 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
     v["timeout"]  = beacon.timeout;
     v["symbol"]   = beacon.symbol;
     v["overlay"]  = beacon.overlay;
+
+    v["smart_beacon"]["active"]      = beacon.smart_beacon.active;
+    v["smart_beacon"]["turn_min"]    = beacon.smart_beacon.turn_min;
+    v["smart_beacon"]["slow_rate"]   = beacon.smart_beacon.slow_rate;
+    v["smart_beacon"]["slow_speed"]  = beacon.smart_beacon.slow_speed;
+    v["smart_beacon"]["fast_rate"]   = beacon.smart_beacon.fast_rate;
+    v["smart_beacon"]["fast_speed"]  = beacon.smart_beacon.fast_speed;
+    v["smart_beacon"]["min_tx_dist"] = beacon.smart_beacon.min_tx_dist;
+    v["smart_beacon"]["min_bcn"]     = beacon.smart_beacon.min_bcn;
+
+    v["enhance_precision"] = beacon.enhance_precision;
   }
 
-  data["debug"]             = conf.debug;
-  data["enhance_precision"] = conf.enhance_precision;
+  data["debug"] = conf.debug;
 
   data["button"]["tx"]          = conf.button.tx;
   data["button"]["alt_message"] = conf.button.alt_message;
-
-  data["smart_beacon"]["active"]      = conf.smart_beacon.active;
-  data["smart_beacon"]["turn_min"]    = conf.smart_beacon.turn_min;
-  data["smart_beacon"]["slow_rate"]   = conf.smart_beacon.slow_rate;
-  data["smart_beacon"]["slow_speed"]  = conf.smart_beacon.slow_speed;
-  data["smart_beacon"]["fast_rate"]   = conf.smart_beacon.fast_rate;
-  data["smart_beacon"]["fast_speed"]  = conf.smart_beacon.fast_speed;
-  data["smart_beacon"]["min_tx_dist"] = conf.smart_beacon.min_tx_dist;
-  data["smart_beacon"]["min_bcn"]     = conf.smart_beacon.min_bcn;
 
   data["lora"]["frequency_rx"]     = conf.lora.frequencyRx;
   data["lora"]["frequency_tx"]     = conf.lora.frequencyTx;
@@ -134,17 +136,4 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
 
   serializeJson(data, file);
   file.close();
-}
-
-Configuration::Beacon Configuration::GetCurrentBeacon() {
-  auto iterator = this->beacons.begin();
-  std::advance(iterator, this->current_beacon_index);
-  return *iterator;
-}
-
-Configuration::Beacon Configuration::SetNextBeacon() {
-  this->current_beacon_index++;
-  if (this->current_beacon_index >= this->beacons.size())
-    this->current_beacon_index = 0;
-  return this->GetCurrentBeacon();
 }

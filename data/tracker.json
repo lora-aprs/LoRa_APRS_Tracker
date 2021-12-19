@@ -1,6 +1,5 @@
 {
 	"debug": false,
-	"enhance_precision": true,
 	"beacons": [
 		{
 			"callsign": "NOCALL-7",
@@ -8,22 +7,23 @@
 			"message": "LoRa Tracker",
 			"timeout": 1,
 			"symbol": "[",
-			"overlay": "/"
+			"overlay": "/",
+			"smart_beacon": {
+				"active": true,
+				"turn_min": 25,
+				"slow_rate": 300,
+				"slow_speed": 10,
+				"fast_rate": 60,
+				"fast_speed": 100,
+				"min_tx_dist": 100,
+				"min_bcn": 5
+			},
+			"enhance_precision": true
 		}
 	],
 	"button": {
 		"tx": true,
 		"alt_message": true
-	},
-	"smart_beacon": {
-		"active": true,
-		"turn_min": 25,
-		"slow_rate": 300,
-		"slow_speed": 10,
-		"fast_rate": 60,
-		"fast_speed": 100,
-		"min_tx_dist": 100,
-		"min_bcn": 5
 	},
 	"lora": {
 		"frequency_rx": 433775000,

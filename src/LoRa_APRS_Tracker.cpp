@@ -7,12 +7,14 @@
 #include <WiFi.h>
 #include <logger.h>
 
+#include "BeaconManager.h"
 #include "configuration.h"
 #include "display.h"
 #include "pins.h"
 #include "power_management.h"
 
 Configuration Config;
+BeaconManager BeaconMan;
 
 PowerManagement powerManagement;
 OneButton       userButton = OneButton(BUTTON_PIN, true, true);
@@ -41,8 +43,8 @@ static void handle_tx_click() {
 }
 
 static void handle_next_beacon() {
-  Configuration::Beacon beacon = Config.SetNextBeacon();
-  show_display(beacon.callsign, beacon.message, 2000);
+  BeaconMan.loadNextBeacon();
+  show_display(BeaconMan.getCurrentBeaconConfig()->callsign, BeaconMan.getCurrentBeaconConfig()->message, 2000);
 }
 
 // cppcheck-suppress unusedFunction
@@ -127,13 +129,13 @@ void loop() {
 
     if (gps_loc_update && nextBeaconTimeStamp <= now()) {
       send_update = true;
-      if (Config.smart_beacon.active) {
+      if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
         currentHeading = gps.course.deg();
         // enforce message text on slowest Config.smart_beacon.slow_rate
         rate_limit_message_text = 0;
       } else {
         // enforce message text every n's Config.beacon.timeout frame
-        if (Config.GetCurrentBeacon().timeout * rate_limit_message_text > 30) {
+        if (BeaconMan.getCurrentBeaconConfig()->timeout * rate_limit_message_text > 30) {
           rate_limit_message_text = 0;
         }
       }
@@ -160,7 +162,7 @@ void loop() {
   }
 #endif
 
-  if (!send_update && gps_loc_update && Config.smart_beacon.active) {
+  if (!send_update && gps_loc_update && BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
     uint32_t lastTx = millis() - lastTxTime;
     currentHeading  = gps.course.deg();
     lastTxdistance  = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), lastTxLat, lastTxLng);
@@ -176,9 +178,9 @@ void loop() {
       // Get headings and heading delta
       double headingDelta = abs(previousHeading - currentHeading);
 
-      if (lastTx > Config.smart_beacon.min_bcn * 1000) {
+      if (lastTx > BeaconMan.getCurrentBeaconConfig()->smart_beacon.min_bcn * 1000) {
         // Check for heading more than 25 degrees
-        if (headingDelta > Config.smart_beacon.turn_min && lastTxdistance > Config.smart_beacon.min_tx_dist) {
+        if (headingDelta > BeaconMan.getCurrentBeaconConfig()->smart_beacon.turn_min && lastTxdistance > BeaconMan.getCurrentBeaconConfig()->smart_beacon.min_tx_dist) {
           send_update = true;
         }
       }
@@ -186,22 +188,20 @@ void loop() {
   }
 
   if (send_update && gps_loc_update) {
-    send_update                  = false;
-    Configuration::Beacon beacon = Config.GetCurrentBeacon();
+    send_update = false;
 
-    nextBeaconTimeStamp = now() + (Config.smart_beacon.active ? Config.smart_beacon.slow_rate : (beacon.timeout * SECS_PER_MIN));
+    nextBeaconTimeStamp = now() + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate : (BeaconMan.getCurrentBeaconConfig()->timeout * SECS_PER_MIN));
 
     APRSMessage msg;
     String      lat;
     String      lng;
     String      dao;
 
-    msg.setSource(beacon.callsign);
-    msg.setPath(beacon.path);
+    msg.setSource(BeaconMan.getCurrentBeaconConfig()->callsign);
+    msg.setPath(BeaconMan.getCurrentBeaconConfig()->path);
     msg.setDestination("APLT00-1");
-    msg.setPath(Config.beacon.path);
 
-    if (!Config.enhance_precision) {
+    if (!BeaconMan.getCurrentBeaconConfig()->enhance_precision) {
       lat = create_lat_aprs(gps.location.rawLat());
       lng = create_long_aprs(gps.location.rawLng());
     } else {
@@ -245,19 +245,19 @@ void loop() {
     }
 
     String aprsmsg;
-    aprsmsg = "!" + lat + beacon.overlay + lng + beacon.symbol + course_and_speed + alt;
+    aprsmsg = "!" + lat + BeaconMan.getCurrentBeaconConfig()->overlay + lng + BeaconMan.getCurrentBeaconConfig()->symbol + course_and_speed + alt;
     // message_text every 10's packet (i.e. if we have beacon rate 1min at high
     // speed -> every 10min). May be enforced above (at expirey of smart beacon
     // rate (i.e. every 30min), or every third packet on static rate (i.e.
     // static rate 10 -> every third packet)
     if (!(rate_limit_message_text++ % 10)) {
-      aprsmsg += beacon.message;
+      aprsmsg += BeaconMan.getCurrentBeaconConfig()->message;
     }
     if (BatteryIsConnected) {
       aprsmsg += " -  _Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA";
     }
 
-    if (Config.enhance_precision) {
+    if (BeaconMan.getCurrentBeaconConfig()->enhance_precision) {
       aprsmsg += " " + dao;
     }
 
@@ -280,7 +280,7 @@ void loop() {
     LoRa.write((const uint8_t *)data.c_str(), data.length());
     LoRa.endPacket();
 
-    if (Config.smart_beacon.active) {
+    if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
       lastTxLat       = gps.location.lat();
       lastTxLng       = gps.location.lng();
       previousHeading = currentHeading;
@@ -296,15 +296,15 @@ void loop() {
 
   if (gps_time_update) {
 
-    show_display(Config.GetCurrentBeacon().callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (Config.smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
+    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
 
-    if (Config.smart_beacon.active) {
+    if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
       // Change the Tx internal based on the current speed
       int curr_speed = (int)gps.speed.kmph();
-      if (curr_speed < Config.smart_beacon.slow_speed) {
-        txInterval = Config.smart_beacon.slow_rate * 1000;
-      } else if (curr_speed > Config.smart_beacon.fast_speed) {
-        txInterval = Config.smart_beacon.fast_rate * 1000;
+      if (curr_speed < BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_speed) {
+        txInterval = BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate * 1000;
+      } else if (curr_speed > BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_speed) {
+        txInterval = BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_rate * 1000;
       } else {
         /* Interval inbetween low and high speed
            min(slow_rate, ..) because: if slow rate is 300s at slow speed <=
@@ -316,7 +316,7 @@ void loop() {
            would lead to decrease of beacon rate in between 5 to 20 km/h. what
            is even below the slow speed rate.
         */
-        txInterval = min(Config.smart_beacon.slow_rate, Config.smart_beacon.fast_speed * Config.smart_beacon.fast_rate / curr_speed) * 1000;
+        txInterval = min(BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate, BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_speed * BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_rate / curr_speed) * 1000;
       }
     }
   }
@@ -331,7 +331,8 @@ void loop() {
 void load_config() {
   ConfigurationManagement confmg("/tracker.json");
   Config = confmg.readConfiguration();
-  if (Config.GetCurrentBeacon().callsign == "NOCALL-10") {
+  BeaconMan.loadConfig(Config.beacons);
+  if (BeaconMan.getCurrentBeaconConfig()->callsign == "NOCALL-10") {
     logPrintlnE("You have to change your settings in 'data/tracker.json' and "
                 "upload it via \"Upload File System image\"!");
     show_display("ERROR", "You have to change your settings in 'data/tracker.json' and "
@@ -476,7 +477,7 @@ String createTimeString(time_t t) {
 }
 
 String getSmartBeaconState() {
-  if (Config.smart_beacon.active) {
+  if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
     return "On";
   }
   return "Off";
