@@ -199,7 +199,7 @@ void loop() {
 
     msg.setSource(BeaconMan.getCurrentBeaconConfig()->callsign);
     msg.setPath(BeaconMan.getCurrentBeaconConfig()->path);
-    msg.setDestination("APLT00-1");
+    msg.setDestination("APLT00");
 
     if (!BeaconMan.getCurrentBeaconConfig()->enhance_precision) {
       lat = create_lat_aprs(gps.location.rawLat());
