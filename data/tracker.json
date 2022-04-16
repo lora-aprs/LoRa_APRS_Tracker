@@ -3,8 +3,8 @@
 	"beacons": [
 		{
 			"callsign": "NOCALL-7",
-			"path": "WIDE1-1",
-			"message": "LoRa Tracker",
+			"path": "",
+			"message": "",
 			"timeout": 1,
 			"symbol": "[",
 			"overlay": "/",
@@ -18,7 +18,7 @@
 				"min_tx_dist": 100,
 				"min_bcn": 5
 			},
-			"enhance_precision": true
+			"enhance_precision": false
 		}
 	],
 	"button": {
