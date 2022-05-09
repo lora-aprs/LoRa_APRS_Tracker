@@ -9,6 +9,16 @@
 
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_RST);
 
+void display_toggle(bool toggle) {
+  logPrintlnI("Toggling display");
+  logPrintlnI(toggle ? "On" : "Off");
+  if (toggle == false) {
+    display.ssd1306_command(SSD1306_DISPLAYOFF);
+  } else {
+    display.ssd1306_command(SSD1306_DISPLAYON);
+  }
+}
+
 // cppcheck-suppress unusedFunction
 void setup_display() {
   pinMode(OLED_RST, OUTPUT);
