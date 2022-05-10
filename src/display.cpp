@@ -33,6 +33,7 @@ void setup_display() {
   display.display();
 }
 
+// cppcheck-suppress unusedFunction
 void display_toggle(bool toggle) {
   logPrintI("Toggling display: ");
   if (toggle) {
