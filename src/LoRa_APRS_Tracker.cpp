@@ -36,7 +36,7 @@ String createTimeString(time_t t);
 String getSmartBeaconState();
 String padding(unsigned int number, unsigned int width);
 
-static bool send_update = true;
+static bool send_update          = true;
 static bool display_toggle_value = true;
 
 static void handle_tx_click() {
@@ -115,7 +115,7 @@ void loop() {
   if (Config.debug) {
     while (Serial.available() > 0) {
       char c = Serial.read();
-      //Serial.print(c);
+      // Serial.print(c);
       gps.encode(c);
     }
   } else {
