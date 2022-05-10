@@ -51,7 +51,7 @@ static void handle_next_beacon() {
 static void toggle_display() {
   display_toggle_value = !display_toggle_value;
   display_toggle(display_toggle_value);
-  if (display_toggle_value == true) {
+  if (display_toggle_value) {
     setup_display();
   }
 }
@@ -77,7 +77,7 @@ void setup() {
   logPrintlnI("LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
   setup_display();
 
-  show_display("DK4KP-7", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
+  show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
   load_config();
 
   setup_gps();
