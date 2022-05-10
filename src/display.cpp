@@ -34,6 +34,18 @@ void setup_display() {
 }
 
 // cppcheck-suppress unusedFunction
+void display_toggle(bool toggle) {
+  logPrintI("Toggling display: ");
+  if (toggle) {
+    logPrintlnI("On");
+    display.ssd1306_command(SSD1306_DISPLAYON);
+  } else {
+    logPrintlnI("Off");
+    display.ssd1306_command(SSD1306_DISPLAYOFF);
+  }
+}
+
+// cppcheck-suppress unusedFunction
 void show_display(String header, int wait) {
   display.clearDisplay();
   display.setTextColor(WHITE);

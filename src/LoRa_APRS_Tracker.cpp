@@ -22,9 +22,9 @@ OneButton       userButton = OneButton(BUTTON_PIN, true, true);
 HardwareSerial ss(1);
 TinyGPSPlus    gps;
 
+void setup_gps();
 void load_config();
 void setup_lora();
-void setup_gps();
 
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
@@ -36,7 +36,8 @@ String createTimeString(time_t t);
 String getSmartBeaconState();
 String padding(unsigned int number, unsigned int width);
 
-static bool send_update = true;
+static bool send_update          = true;
+static bool display_toggle_value = true;
 
 static void handle_tx_click() {
   send_update = true;
@@ -45,6 +46,14 @@ static void handle_tx_click() {
 static void handle_next_beacon() {
   BeaconMan.loadNextBeacon();
   show_display(BeaconMan.getCurrentBeaconConfig()->callsign, BeaconMan.getCurrentBeaconConfig()->message, 2000);
+}
+
+static void toggle_display() {
+  display_toggle_value = !display_toggle_value;
+  display_toggle(display_toggle_value);
+  if (display_toggle_value) {
+    setup_display();
+  }
 }
 
 // cppcheck-suppress unusedFunction
@@ -91,6 +100,7 @@ void setup() {
   if (Config.button.alt_message) {
     userButton.attachLongPressStart(handle_next_beacon);
   }
+  userButton.attachDoubleClick(toggle_display);
 
   logPrintlnI("Smart Beacon is " + getSmartBeaconState());
   show_display("INFO", "Smart Beacon is " + getSmartBeaconState(), 1000);
