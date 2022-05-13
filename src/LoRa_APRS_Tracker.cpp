@@ -175,6 +175,12 @@ void loop() {
   }
 #endif
 
+  if (powerManagement.isChargeing()) {
+    powerManagement.enableChgLed();
+  } else {
+    powerManagement.disableChgLed();
+  }
+
   if (!send_update && gps_loc_update && BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
     uint32_t lastTx = millis() - lastTxTime;
     currentHeading  = gps.course.deg();

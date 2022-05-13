@@ -45,6 +45,16 @@ void PowerManagement::decativateOLED() {
 }
 
 // cppcheck-suppress unusedFunction
+void PowerManagement::disableChgLed() {
+  axp.setChgLEDMode(AXP20X_LED_OFF);
+}
+
+// cppcheck-suppress unusedFunction
+void PowerManagement::enableChgLed() {
+  axp.setChgLEDMode(AXP20X_LED_LOW_LEVEL);
+}
+
+// cppcheck-suppress unusedFunction
 void PowerManagement::activateMeasurement() {
   axp.adc1Enable(AXP202_BATT_CUR_ADC1 | AXP202_BATT_VOL_ADC1, true);
 }
@@ -69,4 +79,8 @@ double PowerManagement::getBatteryChargeDischargeCurrent() {
 
 bool PowerManagement::isBatteryConnect() {
   return axp.isBatteryConnect();
+}
+
+bool PowerManagement::isChargeing() {
+  return axp.isChargeing();
 }
