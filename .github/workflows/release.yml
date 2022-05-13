@@ -1,0 +1,39 @@
+name: Create new release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  version_check:
+    name: Version Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v2
+      - run: pip install GitPython
+      - name: check version
+        run: ./scripts/check_version.py
+
+  create_release:
+    needs: version_check
+    name: Create new release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: sudo apt-get install python3-setuptools python3-wheel
+      - run: pip3 install platformio
+      - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - run: platformio run
+      - run: echo "VERSION=$(./scripts/create_version_tag.py)" >> $GITHUB_ENV
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.VERSION }}
+          commit: master
+          generateReleaseNotes: true
+          artifacts: ".pio/build/lora_board/firmware.bin,data/is-cfg.json"
+          owner: ${{ secrets.OWNER }}
+          token: ${{ secrets.PAT }}
