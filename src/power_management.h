@@ -18,6 +18,9 @@ public:
   void activateOLED();
   void decativateOLED();
 
+  void enableChgLed();
+  void disableChgLed();
+
   void activateMeasurement();
   void deactivateMeasurement();
 
@@ -25,6 +28,7 @@ public:
   double getBatteryChargeDischargeCurrent();
 
   bool isBatteryConnect();
+  bool isChargeing();
 
 private:
   AXP20X_Class axp;
