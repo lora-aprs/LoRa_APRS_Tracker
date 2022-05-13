@@ -8,7 +8,7 @@ current_year = int(str(today.isocalendar()[0])[2:])
 current_week = int(today.isocalendar()[1])
 
 version = None
-with open("src/LoRa_APRS_iGate.cpp") as f:
+with open("src/LoRa_APRS_Tracker.cpp") as f:
     for line in f:
         if line.startswith("#define VERSION"):
             version = line.strip().split(" ")[-1].replace('"', "")
