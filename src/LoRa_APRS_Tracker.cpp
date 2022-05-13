@@ -13,7 +13,7 @@
 #include "pins.h"
 #include "power_management.h"
 
-#define VERSION "22.14.0"
+#define VERSION "22.19.0"
 
 Configuration Config;
 BeaconManager BeaconMan;
