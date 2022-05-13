@@ -13,6 +13,8 @@
 #include "pins.h"
 #include "power_management.h"
 
+#define VERSION "22.19.0"
+
 Configuration Config;
 BeaconManager BeaconMan;
 
@@ -75,9 +77,10 @@ void setup() {
 
   delay(500);
   logPrintlnI("LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
+  logPrintlnI("Version: " VERSION);
   setup_display();
 
-  show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", 2000);
+  show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", "Version: " VERSION, 2000);
   load_config();
 
   setup_gps();
