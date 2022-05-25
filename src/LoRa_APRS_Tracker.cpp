@@ -280,7 +280,7 @@ void loop() {
       aprsmsg += " " + dao;
     }
 
-    msg.getAPRSBody()->setData(aprsmsg);
+    msg.getBody()->setData(aprsmsg);
     String data = msg.encode();
     logPrintlnD(data);
     show_display("<< TX >>", data);
