@@ -8,6 +8,7 @@
 			"timeout": 1,
 			"symbol": "[",
 			"overlay": "/",
+			"type": "t",
 			"smart_beacon": {
 				"active": true,
 				"turn_min": 25,
