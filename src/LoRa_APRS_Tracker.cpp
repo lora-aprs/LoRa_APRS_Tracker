@@ -326,7 +326,25 @@ void loop() {
         dlng = "";
     }
 //
-    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String(dlat + " " + dlng));
+    if ((int)gps.hdop.hdop() > 5) {
+      csa = String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop();
+    } else {
+      String alt     = "";
+      int    alt_int = max(-99999, min(999999, (int)gps.altitude.feet()));
+      alt_int *= 0.3048;
+      if (alt_int < 0) {
+        alt = "-" + padding(alt_int * -1, 0) + "m ";
+      } else {
+        alt = padding(alt_int, 0) + "m ";
+      }
+      String course_and_speed = "";
+      int    speed_int        = max(0, min(999, (int)gps.speed.knots()));
+      String speed      = padding(speed_int * 1.852, 0) + "km/h ";
+      int    course_int = max(0, min(360, (int)gps.course.deg()));
+      String course    = padding(course_int, 0) + "\xF7 ";
+      csa = speed + course + alt + gps.satellites.value() + "/" + (int)gps.hdop.hdop();
+    }
+    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String(csa), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String(dlat + " " + dlng));
 
 //    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
 
