@@ -25,7 +25,7 @@ public:
       int  min_bcn;
     };
 
-    Beacon() : callsign("NOCALL-10"), path("WIDE1-1"), message("LoRa Tracker"), timeout(1), symbol("["), overlay("/"), enhance_precision(true) {
+    Beacon() : callsign("NOCALL-10"), path("WIDE1-1"), message("LoRa Tracker"), timeout(1), symbol("["), overlay("/"), type(" "), enhance_precision(true) {
     }
 
     String       callsign;
@@ -34,6 +34,7 @@ public:
     int          timeout;
     String       symbol;
     String       overlay;
+    String       type;
     Smart_Beacon smart_beacon;
     bool         enhance_precision;
   };
