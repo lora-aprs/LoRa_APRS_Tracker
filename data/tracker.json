@@ -8,7 +8,27 @@
 			"timeout": 1,
 			"symbol": "[",
 			"overlay": "/",
-			"type": "t",
+			"type": "W",
+			"smart_beacon": {
+				"active": true,
+				"turn_min": 25,
+				"slow_rate": 300,
+				"slow_speed": 2,
+				"fast_rate": 60,
+				"fast_speed": 5,
+				"min_tx_dist": 100,
+				"min_bcn": 5
+			},
+			"enhance_precision": true
+		},
+		{
+			"callsign": "NOCALL-7",
+			"path": "WIDE1-1",
+			"message": "LoRa Tracker",
+			"timeout": 1,
+			"symbol": "[",
+			"overlay": "/",
+			"type": "C",
 			"smart_beacon": {
 				"active": true,
 				"turn_min": 25,
@@ -16,6 +36,26 @@
 				"slow_speed": 10,
 				"fast_rate": 60,
 				"fast_speed": 100,
+				"min_tx_dist": 100,
+				"min_bcn": 5
+			},
+			"enhance_precision": true
+		},
+		{
+			"callsign": "NOCALL-7",
+			"path": "WIDE1-1",
+			"message": "LoRa Tracker",
+			"timeout": 1,
+			"symbol": "[",
+			"overlay": "/",
+			"type": "B",
+			"smart_beacon": {
+				"active": true,
+				"turn_min": 25,
+				"slow_rate": 300,
+				"slow_speed": 5,
+				"fast_rate": 60,
+				"fast_speed": 20,
 				"min_tx_dist": 100,
 				"min_bcn": 5
 			},
@@ -41,4 +81,4 @@
 		"end_delay": 0,
 		"reverse": false
 	}
-}
+} 

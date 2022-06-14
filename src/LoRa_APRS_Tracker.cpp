@@ -206,6 +206,7 @@ void loop() {
     }
   }
 
+  String csa  = "";
   if (send_update && gps_loc_update) {
     send_update = false;
 
@@ -289,7 +290,8 @@ void loop() {
       digitalWrite(Config.ptt.io_pin, Config.ptt.reverse ? LOW : HIGH);
       delay(Config.ptt.start_delay);
     }
-
+    csa = alt + "/" +  course_and_speed;
+    
     LoRa.beginPacket();
     // Header:
     LoRa.write('<');
