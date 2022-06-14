@@ -51,6 +51,8 @@ Configuration ConfigurationManagement::readConfiguration() {
       beacon.symbol = v["symbol"].as<String>();
     if (v.containsKey("overlay"))
       beacon.overlay = v["overlay"].as<String>();
+    if (v.containsKey("type"))
+      beacon.type = v["type"].as<String>();
 
     beacon.smart_beacon.active      = v["smart_beacon"]["active"] | false;
     beacon.smart_beacon.turn_min    = v["smart_beacon"]["turn_min"] | 25;

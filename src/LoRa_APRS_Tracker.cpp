@@ -206,6 +206,7 @@ void loop() {
     }
   }
 
+  String csa  = "";
   if (send_update && gps_loc_update) {
     send_update = false;
 
@@ -289,7 +290,8 @@ void loop() {
       digitalWrite(Config.ptt.io_pin, Config.ptt.reverse ? LOW : HIGH);
       delay(Config.ptt.start_delay);
     }
-
+    csa = alt + "/" +  course_and_speed;
+    
     LoRa.beginPacket();
     // Header:
     LoRa.write('<');
@@ -314,8 +316,39 @@ void loop() {
   }
 
   if (gps_time_update) {
+// neu für lat/lng im Display
+    static String dlat = "";
+    static String dlng = "";
+  
+    if (gps_loc_update) {
+        dlat = create_lat_aprs(gps.location.rawLat()) + " " + BeaconMan.getCurrentBeaconConfig()->type;
+        dlng = create_long_aprs(gps.location.rawLng());
+    } else {
+        dlat = BeaconMan.getCurrentBeaconConfig()->message;
+        dlng = "";
+    }
+//
+    if ((int)gps.hdop.hdop() > 5) {
+      csa = String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop();
+    } else {
+      String alt     = "";
+      int    alt_int = max(-99999, min(999999, (int)gps.altitude.feet()));
+      alt_int *= 0.3048;
+      if (alt_int < 0) {
+        alt = "-" + padding(alt_int * -1, 0) + "m ";
+      } else {
+        alt = padding(alt_int, 0) + "m ";
+      }
+      String course_and_speed = "";
+      int    speed_int        = max(0, min(999, (int)gps.speed.knots()));
+      String speed      = padding(speed_int * 1.852, 0) + "km/h ";
+      int    course_int = max(0, min(360, (int)gps.course.deg()));
+      String course    = padding(course_int, 0) + "\xF7 ";
+      csa = speed + course + alt + gps.satellites.value() + "/" + (int)gps.hdop.hdop();
+    }
+    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String(csa), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String(dlat + " " + dlng));
 
-    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
+//    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
 
     if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
       // Change the Tx internal based on the current speed
