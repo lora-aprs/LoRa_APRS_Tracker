@@ -314,7 +314,7 @@ void loop() {
   }
 
   if (gps_time_update) {
-    
+
     show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + "   " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Next Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
 
     if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
