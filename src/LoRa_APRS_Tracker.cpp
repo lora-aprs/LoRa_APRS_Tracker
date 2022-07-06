@@ -315,7 +315,7 @@ void loop() {
 
   if (gps_time_update) {
 
-    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + " " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Nxt Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
+    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + "   " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Next Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
 
     if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
       // Change the Tx internal based on the current speed
@@ -492,7 +492,7 @@ String createDateString(time_t t) {
 }
 
 String createTimeString(time_t t) {
-  return String(padding(hour(t), 2) + "." + padding(minute(t), 2) + "." + padding(second(t), 2));
+  return String(padding(hour(t), 2) + ":" + padding(minute(t), 2) + ":" + padding(second(t), 2));
 }
 
 String getSmartBeaconState() {
