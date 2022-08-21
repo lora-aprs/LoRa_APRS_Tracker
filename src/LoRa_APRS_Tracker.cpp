@@ -129,9 +129,19 @@ void loop() {
     }
   }
 
-  bool          gps_time_update     = gps.time.isUpdated();
-  bool          gps_loc_update      = gps.location.isUpdated();
-  static time_t nextBeaconTimeStamp = -1;
+  bool          gps_time_update      = gps.time.isUpdated();
+  bool          gps_loc_update       = gps.location.isUpdated();
+  static bool   gps_loc_update_valid = false;
+  static time_t nextBeaconTimeStamp  = -1;
+
+  if (gps_loc_update != gps_loc_update_valid) {
+    gps_loc_update_valid = gps_loc_update;
+
+    if (gps_loc_update)
+      logPrintlnI("GPS fix state went to VALID");
+    else
+      logPrintlnI("GPS fix state went to INVALID");
+  }
 
   static double       currentHeading          = 0;
   static double       previousHeading         = 0;
