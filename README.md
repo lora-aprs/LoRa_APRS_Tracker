@@ -30,12 +30,30 @@ The best success is to use PlatformIO (and it is the only platform where I can s
 * When installed click 'the ant head' on the left and choose import the project on the right.
 * Just open the folder and you can compile the Firmware.
 
+
 ### Configuration
 
 * You can find all nessesary settings to change for your configuration in **data/tracker.json**.
 * The `button_tx` setting enables manual triggering of the beacon using the middle button on the T-Beam.
 * To upload it to your board you have to do this via **Upload File System image** in PlatformIO!
 * To find the 'Upload File System image' click the PlatformIO symbol (the little alien) on the left side, choos your configuration, click on 'Platform' and search for 'Upload File System image'.
+
+
+#### Step on console
+
+You may not need to use PlatformIO because compilation and configuration can be done via console.
+
+```
+# switch to virtual env, for example using pipenv
+pipenv shell
+
+# install platformio
+pipenv install platformio
+
+# upload to board
+pio run -t upload
+```
+
 
 ## LoRa iGate
 
