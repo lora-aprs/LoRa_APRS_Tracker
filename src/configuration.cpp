@@ -7,12 +7,14 @@
 
 #include "configuration.h"
 
+extern logging::Logger logger;
+
 ConfigurationManagement::ConfigurationManagement(String FilePath) : mFilePath(FilePath) {
   if (!SPIFFS.begin(true)) {
-    logPrintlnE("Mounting SPIFFS was not possible. Trying to format SPIFFS...");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Mounting SPIFFS was not possible. Trying to format SPIFFS...");
     SPIFFS.format();
     if (!SPIFFS.begin()) {
-      logPrintlnE("Formating SPIFFS was not okay!");
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Formatting SPIFFS was not okay!");
     }
   }
 }
@@ -21,14 +23,14 @@ ConfigurationManagement::ConfigurationManagement(String FilePath) : mFilePath(Fi
 Configuration ConfigurationManagement::readConfiguration() {
   File file = SPIFFS.open(mFilePath);
   if (!file) {
-    logPrintlnE("Failed to open file for reading...");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
     return Configuration();
   }
   DynamicJsonDocument  data(2048);
   DeserializationError error = deserializeJson(data, file);
 
   if (error) {
-    logPrintlnE("Failed to read file, using default configuration.");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to read file, using default configuration.");
   }
   file.close();
 
@@ -89,7 +91,7 @@ Configuration ConfigurationManagement::readConfiguration() {
 void ConfigurationManagement::writeConfiguration(Configuration conf) {
   File file = SPIFFS.open(mFilePath, "w");
   if (!file) {
-    logPrintlnE("Failed to open file for writing...");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
     return;
   }
   DynamicJsonDocument data(2048);
