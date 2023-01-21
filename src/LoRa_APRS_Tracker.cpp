@@ -15,6 +15,8 @@
 
 #define VERSION "22.19.0"
 
+logging::Logger logger;
+
 Configuration Config;
 BeaconManager BeaconMan;
 
@@ -65,9 +67,9 @@ void setup() {
 #ifdef TTGO_T_Beam_V1_0
   Wire.begin(SDA, SCL);
   if (!powerManagement.begin(Wire)) {
-    logPrintlnI("AXP192 init done!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "AXP192", "init done!");
   } else {
-    logPrintlnE("AXP192 init failed!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "AXP192", "init failed!");
   }
   powerManagement.activateLoRa();
   powerManagement.activateOLED();
@@ -76,8 +78,8 @@ void setup() {
 #endif
 
   delay(500);
-  logPrintlnI("LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
-  logPrintlnI("Version: " VERSION);
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "LoRa APRS Tracker by OE5BPA (Peter Buchegger)");
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "Version: " VERSION);
   setup_display();
 
   show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", "Version: " VERSION, 2000);
@@ -105,9 +107,9 @@ void setup() {
   }
   userButton.attachDoubleClick(toggle_display);
 
-  logPrintlnI("Smart Beacon is " + getSmartBeaconState());
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "Smart Beacon is: %s", getSmartBeaconState());
   show_display("INFO", "Smart Beacon is " + getSmartBeaconState(), 1000);
-  logPrintlnI("setup done...");
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "setup done...");
   delay(500);
 }
 
@@ -137,10 +139,11 @@ void loop() {
   if (gps_loc_update != gps_loc_update_valid) {
     gps_loc_update_valid = gps_loc_update;
 
-    if (gps_loc_update)
-      logPrintlnI("GPS fix state went to VALID");
-    else
-      logPrintlnI("GPS fix state went to INVALID");
+    if (gps_loc_update) {
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Loop", "GPS fix state went to VALID");
+    } else {
+      logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Loop", "GPS fix state went to INVALID");
+    }
   }
 
   static double       currentHeading          = 0;
@@ -292,7 +295,7 @@ void loop() {
 
     msg.getBody()->setData(aprsmsg);
     String data = msg.encode();
-    logPrintlnD(data);
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "Loop", "%s", data);
     show_display("<< TX >>", data);
 
     if (Config.ptt.active) {
@@ -351,8 +354,9 @@ void loop() {
   }
 
   if ((Config.debug == false) && (millis() > 5000 && gps.charsProcessed() < 10)) {
-    logPrintlnE("No GPS frames detected! Try to reset the GPS Chip with this "
-                "firmware: https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "GPS",
+               "No GPS frames detected! Try to reset the GPS Chip with this "
+               "firmware: https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset");
     show_display("No GPS frames detected!", "Try to reset the GPS Chip", "https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset", 2000);
   }
 }
@@ -362,8 +366,9 @@ void load_config() {
   Config = confmg.readConfiguration();
   BeaconMan.loadConfig(Config.beacons);
   if (BeaconMan.getCurrentBeaconConfig()->callsign == "NOCALL-10") {
-    logPrintlnE("You have to change your settings in 'data/tracker.json' and "
-                "upload it via \"Upload File System image\"!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Config",
+               "You have to change your settings in 'data/tracker.json' and "
+               "upload it via \"Upload File System image\"!");
     show_display("ERROR", "You have to change your settings in 'data/tracker.json' and "
                           "upload it via \"Upload File System image\"!");
     while (true) {
@@ -372,16 +377,15 @@ void load_config() {
 }
 
 void setup_lora() {
-  logPrintlnI("Set SPI pins!");
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Set SPI pins!");
   SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_CS);
-  logPrintlnI("Set LoRa pins!");
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "Set LoRa pins!");
   LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
 
   long freq = Config.lora.frequencyTx;
-  logPrintI("frequency: ");
-  logPrintlnI(String(freq));
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "frequency: %d", freq);
   if (!LoRa.begin(freq)) {
-    logPrintlnE("Starting LoRa failed!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "LoRa", "Starting LoRa failed!");
     show_display("ERROR", "Starting LoRa failed!");
     while (true) {
     }
@@ -392,7 +396,7 @@ void setup_lora() {
   LoRa.enableCrc();
 
   LoRa.setTxPower(Config.lora.power);
-  logPrintlnI("LoRa init done!");
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", "LoRa init done!");
   show_display("INFO", "LoRa init done!", 2000);
 }
 
