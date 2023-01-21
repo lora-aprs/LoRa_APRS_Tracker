@@ -7,6 +7,8 @@
 #include "display.h"
 #include "pins.h"
 
+extern logging::Logger logger;
+
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_RST);
 
 // cppcheck-suppress unusedFunction
@@ -18,7 +20,7 @@ void setup_display() {
 
   Wire.begin(OLED_SDA, OLED_SCL);
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3c, false, false)) {
-    logPrintlnE("SSD1306 allocation failed");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "SSD1306", "allocation failed!");
     while (true) {
     }
   }
@@ -35,12 +37,9 @@ void setup_display() {
 
 // cppcheck-suppress unusedFunction
 void display_toggle(bool toggle) {
-  logPrintI("Toggling display: ");
   if (toggle) {
-    logPrintlnI("On");
     display.ssd1306_command(SSD1306_DISPLAYON);
   } else {
-    logPrintlnI("Off");
     display.ssd1306_command(SSD1306_DISPLAYOFF);
   }
 }
