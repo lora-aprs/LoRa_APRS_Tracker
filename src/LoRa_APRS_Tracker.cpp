@@ -402,6 +402,7 @@ void setup_lora() {
 
 void setup_gps() {
   ss.begin(9600, SERIAL_8N1, GPS_TX, GPS_RX);
+  ss.println(); //GPS seems to have problems if the line is not initialized
 }
 
 char *s_min_nn(uint32_t min_nnnnn, int high_precision) {
