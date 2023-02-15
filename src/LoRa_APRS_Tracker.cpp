@@ -136,10 +136,10 @@ void loop() {
   static bool   gps_loc_update_valid = false;
   static time_t nextBeaconTimeStamp  = -1;
 
-  if (gps_loc_update != gps_loc_update_valid) {
-    gps_loc_update_valid = gps_loc_update;
+  if (gps.location.isValid() != gps_loc_update_valid) {
+    gps_loc_update_valid = gps.location.isValid();
 
-    if (gps_loc_update) {
+    if (gps_loc_update_valid) {
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Loop", "GPS fix state went to VALID");
     } else {
       logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Loop", "GPS fix state went to INVALID");
