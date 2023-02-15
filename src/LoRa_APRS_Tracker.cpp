@@ -4,9 +4,13 @@
 #include <OneButton.h>
 #include <TimeLib.h>
 #include <TinyGPS++.h>
-#include <WiFi.h>
+#ifdef ESP32
+# include <WiFi.h>
+#endif
 #include <logger.h>
-
+#ifdef ESP32
+#  include <esp_bt.h>
+#endif
 #include "BeaconManager.h"
 #include "configuration.h"
 #include "display.h"
@@ -93,10 +97,26 @@ void setup() {
     digitalWrite(Config.ptt.io_pin, Config.ptt.reverse ? HIGH : LOW);
   }
 
+#ifdef ESP32
   // make sure wifi and bt is off as we don't need it:
   WiFi.mode(WIFI_OFF);
   btStop();
 
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "WiFi and BT controller stopped");
+  esp_bt_controller_disable();
+  logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "BT controller disabled");
+#  if defined(TTGO_T_Beam_V1_0) // || defined(TTGO_T_Beam_V0_7)
+  // TTGO_T_Beam_V0_7 should probably work as well but could not be confirmed so it is disabled now
+  //Going to 20MHz breaks the display in 3.0.x SDK
+  //40 MHz reduces power consumption by ~15-20mA but is broken in present SDK
+  //Using 80 MHz as a safe value works
+  if (setCpuFrequencyMhz(80)) {
+	logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "CPU frequency set to 80MHz");
+  } else {
+	logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "CPU frequency unchanged");
+  }
+#  endif
+#endif
   if (Config.button.tx) {
     // attach TX action to user button (defined by BUTTON_PIN)
     userButton.attachClick(handle_tx_click);
