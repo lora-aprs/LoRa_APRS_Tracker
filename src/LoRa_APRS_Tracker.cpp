@@ -295,7 +295,7 @@ void loop() {
 
     msg.getBody()->setData(aprsmsg);
     String data = msg.encode();
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "Loop", "%s", data);
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "Loop", "%s", data.c_str());
     show_display("<< TX >>", data);
 
     if (Config.ptt.active) {
