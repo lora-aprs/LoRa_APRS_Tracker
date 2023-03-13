@@ -359,6 +359,22 @@ void loop() {
                "firmware: https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset");
     show_display("No GPS frames detected!", "Try to reset the GPS Chip", "https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset", 2000);
   }
+  
+   //RX
+  int packetSize = LoRa.parsePacket();
+  
+   if (packetSize)    {
+    String rxdata;
+      
+    while (LoRa.available()) { // read packet
+      rxdata+=(char)LoRa.read();
+    }
+ 
+    rxdata+="' with RSSI ";
+    rxdata+=(LoRa.packetRssi());
+    show_display("<< RX RX >>", rxdata);
+    delay(4000);
+  }
 }
 
 void load_config() {
