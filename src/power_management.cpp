@@ -81,6 +81,12 @@ bool PowerManagement::isBatteryConnect() {
   return axp.isBatteryConnect();
 }
 
-bool PowerManagement::isChargeing() {
+bool PowerManagement::isCharging() {
   return axp.isChargeing();
 }
+
+// cppcheck-suppress unusedFunction
+void PowerManagement::enCharging(bool bChrg) {
+  axp.enableChargeing(bChrg);
+}
+
