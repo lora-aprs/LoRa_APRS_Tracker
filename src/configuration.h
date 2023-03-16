@@ -76,7 +76,7 @@ public:
   }
 
   bool              debug;
-  std::list<Beacon> beacons;
+  Beacon beacon;
   LoRa              lora;
   PTT               ptt;
   Button            button;

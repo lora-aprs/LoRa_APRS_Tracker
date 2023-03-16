@@ -1,5 +1,4 @@
 #include <SPIFFS.h>
-#include <logger.h>
 
 #ifndef CPPCHECK
 #include <ArduinoJson.h>
@@ -7,15 +6,10 @@
 
 #include "configuration.h"
 
-extern logging::Logger logger;
-
 ConfigurationManagement::ConfigurationManagement(String FilePath) : mFilePath(FilePath) {
   if (!SPIFFS.begin(true)) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Mounting SPIFFS was not possible. Trying to format SPIFFS...");
     SPIFFS.format();
-    if (!SPIFFS.begin()) {
-      logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Formatting SPIFFS was not okay!");
-    }
+    SPIFFS.begin();
   }
 }
 
@@ -23,14 +17,12 @@ ConfigurationManagement::ConfigurationManagement(String FilePath) : mFilePath(Fi
 Configuration ConfigurationManagement::readConfiguration() {
   File file = SPIFFS.open(mFilePath);
   if (!file) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
     return Configuration();
   }
   DynamicJsonDocument  data(2048);
   DeserializationError error = deserializeJson(data, file);
 
   if (error) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to read file, using default configuration.");
   }
   file.close();
 
@@ -38,35 +30,26 @@ Configuration ConfigurationManagement::readConfiguration() {
 
   conf.debug = data["debug"] | false;
 
-  JsonArray beacons = data["beacons"].as<JsonArray>();
-  for (JsonVariant v : beacons) {
-    Configuration::Beacon beacon;
-
-    if (v.containsKey("callsign"))
-      beacon.callsign = v["callsign"].as<String>();
-    if (v.containsKey("path"))
-      beacon.path = v["path"].as<String>();
-    if (v.containsKey("message"))
-      beacon.message = v["message"].as<String>();
-    beacon.timeout = v["timeout"] | 1;
-    if (v.containsKey("symbol"))
-      beacon.symbol = v["symbol"].as<String>();
-    if (v.containsKey("overlay"))
-      beacon.overlay = v["overlay"].as<String>();
-
-    beacon.smart_beacon.active      = v["smart_beacon"]["active"] | false;
-    beacon.smart_beacon.turn_min    = v["smart_beacon"]["turn_min"] | 25;
-    beacon.smart_beacon.slow_rate   = v["smart_beacon"]["slow_rate"] | 300;
-    beacon.smart_beacon.slow_speed  = v["smart_beacon"]["slow_speed"] | 10;
-    beacon.smart_beacon.fast_rate   = v["smart_beacon"]["fast_rate"] | 60;
-    beacon.smart_beacon.fast_speed  = v["smart_beacon"]["fast_speed"] | 100;
-    beacon.smart_beacon.min_tx_dist = v["smart_beacon"]["min_tx_dist"] | 100;
-    beacon.smart_beacon.min_bcn     = v["smart_beacon"]["min_bcn"] | 5;
-
-    beacon.enhance_precision = v["enhance_precision"] | false;
-
-    conf.beacons.push_back(beacon);
-  }
+  // conf.beacon.callsign ="NOCALL-7";
+  conf.beacon.callsign = data["beacon"]["callsign"].as<String>();
+  // conf.beacon.path ="WIDE1-1";
+  conf.beacon.path = data["beacon"]["path"].as<String>();
+  // conf.beacon.message="73";
+  conf.beacon.message = data["beacon"]["message"].as<String>();
+  conf.beacon.timeout = data["beacon"]["timeout"] | 1;
+  // conf.beacon.symbol = "[";
+  conf.beacon.symbol = data["beacon"]["symbol"].as<String>();
+  // conf.beacon.overlay ="/";
+  conf.beacon.overlay                  = data["beacon"]["overlay"].as<String>();
+  conf.beacon.smart_beacon.active      = data["beacon"]["smart_beacon"]["active"] | false;
+  conf.beacon.smart_beacon.turn_min    = data["beacon"]["smart_beacon"]["turn_min"] | 25;
+  conf.beacon.smart_beacon.slow_rate   = data["beacon"]["smart_beacon"]["slow_rate"] | 120;
+  conf.beacon.smart_beacon.slow_speed  = data["beacon"]["smart_beacon"]["slow_speed"] | 10;
+  conf.beacon.smart_beacon.fast_rate   = data["beacon"]["smart_beacon"]["fast_rate"] | 10;
+  conf.beacon.smart_beacon.fast_speed  = data["beacon"]["smart_beacon"]["fast_speed"] | 100;
+  conf.beacon.smart_beacon.min_tx_dist = data["beacon"]["smart_beacon"]["min_tx_dist"] | 100;
+  conf.beacon.smart_beacon.min_bcn     = data["beacon"]["smart_beacon"]["min_bcn"] | 5;
+  conf.beacon.enhance_precision        = data["beacon"]["enhance_precision"] | false;
 
   conf.button.tx          = data["button"]["tx"] | false;
   conf.button.alt_message = data["button"]["alt_message"] | false;
@@ -87,11 +70,10 @@ Configuration ConfigurationManagement::readConfiguration() {
   return conf;
 }
 
-// cppcheck-suppress unusedFunction
+/* cppcheck-suppress unusedFunction
 void ConfigurationManagement::writeConfiguration(Configuration conf) {
   File file = SPIFFS.open(mFilePath, "w");
   if (!file) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
     return;
   }
   DynamicJsonDocument data(2048);
@@ -138,4 +120,4 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
 
   serializeJson(data, file);
   file.close();
-}
+}*/

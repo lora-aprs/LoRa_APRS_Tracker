@@ -28,7 +28,8 @@ public:
   double getBatteryChargeDischargeCurrent();
 
   bool isBatteryConnect();
-  bool isChargeing();
+  bool isCharging();
+  void enCharging(bool );
 
 private:
   AXP20X_Class axp;
