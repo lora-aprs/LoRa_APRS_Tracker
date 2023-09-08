@@ -1,3 +1,8 @@
+# Ive updated Peterus's LoRa Software to the new T-Beam v1.2
+
+The new MPU hasnt the same function as the old one - so the Ampere Meter isnt working anymore. Its a "nice to have" for me - so ive removed it...
+Nothing more to say ^^
+
 # LoRa APRS Tracker
 
 The LoRa APRS Tracker will work with very cheep hardware which you can buy from amazon, ebay or aliexpress.
