@@ -1,5 +1,6 @@
 {
 	"debug": false,
+	"adaptTimezone": 2,
 	"beacons": [
 		{
 			"callsign": "NOCALL-7",
