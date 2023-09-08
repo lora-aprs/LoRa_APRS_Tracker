@@ -3,6 +3,8 @@
 #define DISPLAY_H_
 
 void setup_display();
+void sleep_display();
+void awake_display();
 void display_toggle(bool toggle);
 
 void show_display(String header, int wait = 0);

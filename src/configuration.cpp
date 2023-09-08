@@ -37,6 +37,7 @@ Configuration ConfigurationManagement::readConfiguration() {
   Configuration conf;
 
   conf.debug = data["debug"] | false;
+  conf.adaptTimezone = data["adaptTimezone"] | 0;
 
   JsonArray beacons = data["beacons"].as<JsonArray>();
   for (JsonVariant v : beacons) {
@@ -119,6 +120,7 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
   }
 
   data["debug"] = conf.debug;
+  data["adaptTimezone"] = conf.adaptTimezone;
 
   data["button"]["tx"]          = conf.button.tx;
   data["button"]["alt_message"] = conf.button.alt_message;

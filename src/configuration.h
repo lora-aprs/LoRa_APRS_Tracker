@@ -72,10 +72,11 @@ public:
     int  alt_message;
   };
 
-  Configuration() : debug(false) {
-  }
+  Configuration() : debug(false) ,adaptTimezone(0) {
+  };
 
   bool              debug;
+  int               adaptTimezone;
   std::list<Beacon> beacons;
   LoRa              lora;
   PTT               ptt;

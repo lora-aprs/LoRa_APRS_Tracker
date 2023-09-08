@@ -1,3 +1,11 @@
+# Ive updated Peterus's LoRa Software to the new T-Beam v1.2
+
+The new MPU hasnt the same functions as the old one - so the Ampere Meter isnt working anymore. Its a "nice to have" for me - so ive removed it...
+Nothing more to say ^^
+
+And a little QOL Update - i dont need the display to be always on... Push the middle Button (IO38) and the OLED Display will be deactivated or activated. (It was desired with the Issues). And ive added a timezone adapt - so the time is always right (does not include date!).
+
+
 # LoRa APRS Tracker
 
 The LoRa APRS Tracker will work with very cheep hardware which you can buy from amazon, ebay or aliexpress.
@@ -11,6 +19,7 @@ You can use one of the Lora32 boards:
 
 * TTGO T-Beam V0.7 (433MHz SX1278)
 * TTGO T-Beam V1 (433MHz SX1278)
+* TTGO T-Beam V1.2 (433MHz SX1278)
 
 This boards cost around 30 Euros, they are very cheap but perfect for an LoRa iGate.
 Keep in minde: you need a 433MHz version!
