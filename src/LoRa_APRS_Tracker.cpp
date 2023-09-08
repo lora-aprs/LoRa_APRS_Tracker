@@ -29,6 +29,8 @@ TinyGPSPlus    gps;
 void setup_gps();
 void load_config();
 void setup_lora();
+bool OLED_deactivated = false;
+int OLED_deactivatedTime = 0;
 
 String create_lat_aprs(RawDegrees lat);
 String create_long_aprs(RawDegrees lng);
@@ -85,7 +87,7 @@ void setup() {
 
   show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", "Updated by HrSh3rl0ck", "Version: " VERSION, 2000);
   load_config();
-
+  
   setup_gps();
   setup_lora();
 
@@ -131,6 +133,26 @@ void loop() {
       gps.encode(c);
     }
   }
+
+  pinMode(GPIO_NUM_38, INPUT_PULLUP);
+	int btn_pressenIO38 = analogRead(GPIO_NUM_38);
+	if(btn_pressenIO38 != 4095){
+		if(OLED_deactivatedTime >= 180){
+			if(OLED_deactivated) {
+				OLED_deactivated = false;
+				awake_display();
+				OLED_deactivatedTime = 0;
+			} else {
+				OLED_deactivated = true;
+				sleep_display();
+				OLED_deactivatedTime = 0;
+			};
+		} else {
+			OLED_deactivatedTime += 1;
+		};
+	} else {
+		OLED_deactivatedTime = 0;
+	};
 
   bool          gps_time_update      = gps.time.isUpdated();
   bool          gps_loc_update       = gps.location.isUpdated();

@@ -82,12 +82,18 @@ void PowerManagement::activateOLED() {
   #if defined(TTGO_T_Beam_V0_7) || defined(TTGO_T_Beam_V1_0)
     axp.setPowerOutPut(AXP192_DCDC1, AXP202_ON);
   #endif
+  #ifdef TTGO_T_Beam_V1_2
+    PMU.enableDC1();
+  #endif
 }
 
 // cppcheck-suppress unusedFunction
 void PowerManagement::decativateOLED() {
   #if defined(TTGO_T_Beam_V0_7) || defined(TTGO_T_Beam_V1_0)
     axp.setPowerOutPut(AXP192_DCDC1, AXP202_OFF);
+  #endif
+  #ifdef TTGO_T_Beam_V1_2
+    PMU.disableDC1();
   #endif
 }
 
