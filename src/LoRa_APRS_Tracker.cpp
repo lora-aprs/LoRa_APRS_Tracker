@@ -13,7 +13,7 @@
 #include "pins.h"
 #include "power_management.h"
 
-#define VERSION "22.19.0"
+#define VERSION "23.09.08"
 
 logging::Logger logger;
 
@@ -64,12 +64,13 @@ static void toggle_display() {
 void setup() {
   Serial.begin(115200);
 
-#ifdef TTGO_T_Beam_V1_0
+
+#if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_2)
   Wire.begin(SDA, SCL);
   if (!powerManagement.begin(Wire)) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "AXP192", "init done!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "PMU", "init done!");
   } else {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "AXP192", "init failed!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "PMU", "init failed!");
   }
   powerManagement.activateLoRa();
   powerManagement.activateOLED();
@@ -82,7 +83,7 @@ void setup() {
   logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "Version: " VERSION);
   setup_display();
 
-  show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", "Version: " VERSION, 2000);
+  show_display("OE5BPA", "LoRa APRS Tracker", "by Peter Buchegger", "Updated by HrSh3rl0ck", "Version: " VERSION, 2000);
   load_config();
 
   setup_gps();
@@ -178,7 +179,7 @@ void loop() {
   static bool   BatteryIsConnected   = false;
   static String batteryVoltage       = "";
   static String batteryChargeCurrent = "";
-#ifdef TTGO_T_Beam_V1_0
+#if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_2)
   static unsigned int rate_limit_check_battery = 0;
   if (!(rate_limit_check_battery++ % 60))
     BatteryIsConnected = powerManagement.isBatteryConnect();
@@ -328,7 +329,17 @@ void loop() {
 
   if (gps_time_update) {
 
-    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + "   " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Next Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
+    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, 
+      createDateString(now()) + "   " + createTimeString(now()), 
+      String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), 
+      String("Next Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp),
+      #if defined(TTGO_T_Beam_V0_7) || defined(TTGO_T_Beam_V1_0)
+        BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", 
+      #endif
+      #ifdef TTGO_T_Beam_V1_2
+        BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V") : "Powered via USB", 
+      #endif
+      String("Smart Beacon: " + getSmartBeaconState()));
 
     if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
       // Change the Tx internal based on the current speed
