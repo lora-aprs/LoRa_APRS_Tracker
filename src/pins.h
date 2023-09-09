@@ -16,7 +16,7 @@
 #define GPS_TX 12
 #endif
 
-#ifdef TTGO_T_Beam_V1_0
+#if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_2)
 #define GPS_RX 12
 #define GPS_TX 34
 #endif
