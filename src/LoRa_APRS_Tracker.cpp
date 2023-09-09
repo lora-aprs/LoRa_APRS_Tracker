@@ -13,15 +13,22 @@
 #include "pins.h"
 #include "power_management.h"
 
-#define VERSION "22.19.0"
+#define VERSION "23.36.0"
 
 logging::Logger logger;
 
 Configuration Config;
 BeaconManager BeaconMan;
 
-PowerManagement powerManagement;
-OneButton       userButton = OneButton(BUTTON_PIN, true, true);
+#ifdef TTGO_T_Beam_V1_0
+AXP192           axp;
+PowerManagement *powerManagement = &axp;
+#endif
+#ifdef TTGO_T_Beam_V1_2
+AXP2101          axp;
+PowerManagement *powerManagement = &axp;
+#endif
+OneButton userButton = OneButton(BUTTON_PIN, true, true);
 
 HardwareSerial ss(1);
 TinyGPSPlus    gps;
@@ -66,15 +73,27 @@ void setup() {
 
 #ifdef TTGO_T_Beam_V1_0
   Wire.begin(SDA, SCL);
-  if (!powerManagement.begin(Wire)) {
+  if (powerManagement->begin(Wire)) {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "AXP192", "init done!");
   } else {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "AXP192", "init failed!");
   }
-  powerManagement.activateLoRa();
-  powerManagement.activateOLED();
-  powerManagement.activateGPS();
-  powerManagement.activateMeasurement();
+  powerManagement->activateLoRa();
+  powerManagement->activateOLED();
+  powerManagement->activateGPS();
+  powerManagement->activateMeasurement();
+#endif
+#ifdef TTGO_T_Beam_V1_2
+  Wire.begin(SDA, SCL);
+  if (powerManagement->begin(Wire)) {
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "AXP2101", "init done!");
+  } else {
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "AXP2101", "init failed!");
+  }
+  powerManagement->activateLoRa();
+  powerManagement->activateOLED();
+  powerManagement->activateGPS();
+  powerManagement->activateMeasurement();
 #endif
 
   delay(500);
@@ -180,19 +199,14 @@ void loop() {
   static String batteryChargeCurrent = "";
 #ifdef TTGO_T_Beam_V1_0
   static unsigned int rate_limit_check_battery = 0;
-  if (!(rate_limit_check_battery++ % 60))
-    BatteryIsConnected = powerManagement.isBatteryConnect();
+  if (!(rate_limit_check_battery++ % 60)) {
+    BatteryIsConnected = powerManagement->isBatteryConnect();
+  }
   if (BatteryIsConnected) {
-    batteryVoltage       = String(powerManagement.getBatteryVoltage(), 2);
-    batteryChargeCurrent = String(powerManagement.getBatteryChargeDischargeCurrent(), 0);
+    batteryVoltage       = String(powerManagement->getBatteryVoltage(), 2);
+    batteryChargeCurrent = String(powerManagement->getBatteryChargeDischargeCurrent(), 0);
   }
 #endif
-
-  if (powerManagement.isChargeing()) {
-    powerManagement.enableChgLed();
-  } else {
-    powerManagement.disableChgLed();
-  }
 
   if (!send_update && gps_loc_update && BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
     uint32_t lastTx = millis() - lastTxTime;
@@ -222,7 +236,8 @@ void loop() {
   if (send_update && gps_loc_update) {
     send_update = false;
 
-    nextBeaconTimeStamp = now() + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate : (BeaconMan.getCurrentBeaconConfig()->timeout * SECS_PER_MIN));
+    nextBeaconTimeStamp =
+        now() + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate : (BeaconMan.getCurrentBeaconConfig()->timeout * SECS_PER_MIN));
 
     APRSMessage msg;
     String      lat;
@@ -328,7 +343,20 @@ void loop() {
 
   if (gps_time_update) {
 
-    show_display(BeaconMan.getCurrentBeaconConfig()->callsign, createDateString(now()) + "   " + createTimeString(now()), String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(), String("Next Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp), BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB", String("Smart Beacon: " + getSmartBeaconState()));
+    show_display(BeaconMan.getCurrentBeaconConfig()->callsign,
+                 createDateString(now()) + "   " + createTimeString(now()),
+                 String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop(),
+                 String("Next Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp),
+                 BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB",
+                 String("Smart Beacon: " + getSmartBeaconState()));
+
+    Serial.println(BeaconMan.getCurrentBeaconConfig()->callsign);
+    Serial.println(createDateString(now()) + "   " + createTimeString(now()));
+    Serial.println(String("Sats: ") + gps.satellites.value() + " HDOP: " + gps.hdop.hdop());
+    Serial.println(String("Next Bcn: ") + (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active ? "~" : "") + createTimeString(nextBeaconTimeStamp));
+    Serial.println(BatteryIsConnected ? (String("Bat: ") + batteryVoltage + "V, " + batteryChargeCurrent + "mA") : "Powered via USB");
+    Serial.println(String("Smart Beacon: " + getSmartBeaconState()));
+    Serial.println();
 
     if (BeaconMan.getCurrentBeaconConfig()->smart_beacon.active) {
       // Change the Tx internal based on the current speed
@@ -348,13 +376,16 @@ void loop() {
            would lead to decrease of beacon rate in between 5 to 20 km/h. what
            is even below the slow speed rate.
         */
-        txInterval = min(BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate, BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_speed * BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_rate / curr_speed) * 1000;
+        txInterval = min(BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate,
+                         BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_speed * BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_rate / curr_speed) *
+                     1000;
       }
     }
   }
 
   if ((Config.debug == false) && (millis() > 5000 && gps.charsProcessed() < 10)) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "GPS",
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR,
+               "GPS",
                "No GPS frames detected! Try to reset the GPS Chip with this "
                "firmware: https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset");
     show_display("No GPS frames detected!", "Try to reset the GPS Chip", "https://github.com/lora-aprs/TTGO-T-Beam_GPS-reset", 2000);
@@ -366,11 +397,13 @@ void load_config() {
   Config = confmg.readConfiguration();
   BeaconMan.loadConfig(Config.beacons);
   if (BeaconMan.getCurrentBeaconConfig()->callsign == "NOCALL-7") {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Config",
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR,
+               "Config",
                "You have to change your settings in 'data/tracker.json' and "
                "upload it via \"Upload File System image\"!");
-    show_display("ERROR", "You have to change your settings in 'data/tracker.json' and "
-                          "upload it via \"Upload File System image\"!");
+    show_display("ERROR",
+                 "You have to change your settings in 'data/tracker.json' and "
+                 "upload it via \"Upload File System image\"!");
     while (true) {
     }
   }
