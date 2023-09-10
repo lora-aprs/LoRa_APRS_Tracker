@@ -71,24 +71,12 @@ static void toggle_display() {
 void setup() {
   Serial.begin(115200);
 
-#ifdef TTGO_T_Beam_V1_0
+#if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_2)
   Wire.begin(SDA, SCL);
   if (powerManagement->begin(Wire)) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "AXP192", "init done!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "PMU", "init done!");
   } else {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "AXP192", "init failed!");
-  }
-  powerManagement->activateLoRa();
-  powerManagement->activateOLED();
-  powerManagement->activateGPS();
-  powerManagement->activateMeasurement();
-#endif
-#ifdef TTGO_T_Beam_V1_2
-  Wire.begin(SDA, SCL);
-  if (powerManagement->begin(Wire)) {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "AXP2101", "init done!");
-  } else {
-    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "AXP2101", "init failed!");
+    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "PMU", "init failed!");
   }
   powerManagement->activateLoRa();
   powerManagement->activateOLED();
@@ -197,7 +185,7 @@ void loop() {
   static bool   BatteryIsConnected   = false;
   static String batteryVoltage       = "";
   static String batteryChargeCurrent = "";
-#ifdef TTGO_T_Beam_V1_0
+#if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_2)
   static unsigned int rate_limit_check_battery = 0;
   if (!(rate_limit_check_battery++ % 60)) {
     BatteryIsConnected = powerManagement->isBatteryConnect();
@@ -301,7 +289,10 @@ void loop() {
       aprsmsg += BeaconMan.getCurrentBeaconConfig()->message;
     }
     if (BatteryIsConnected) {
-      aprsmsg += " -  _Bat.: " + batteryVoltage + "V - Cur.: " + batteryChargeCurrent + "mA";
+      aprsmsg += " - Bat.: " + batteryVoltage + "V";
+#ifdef TTGO_T_Beam_V1_0
+      aprsmsg += " - Cur.: " + batteryChargeCurrent + "mA";
+#endif
     }
 
     if (BeaconMan.getCurrentBeaconConfig()->enhance_precision) {
