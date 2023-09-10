@@ -13,7 +13,7 @@
 #include "pins.h"
 #include "power_management.h"
 
-#define VERSION "23.36.0"
+#define VERSION "23.36.01"
 
 logging::Logger logger;
 
