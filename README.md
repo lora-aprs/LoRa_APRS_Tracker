@@ -10,7 +10,8 @@ Try it out and be part of the APRS network.
 You can use one of the Lora32 boards:
 
 * TTGO T-Beam V0.7 (433MHz SX1278)
-* TTGO T-Beam V1 (433MHz SX1278)
+* TTGO T-Beam V1.0 and V1.1 (433MHz SX1278)
+* TTGO T-Beam V1.2 AXP2101 (433MHz SX1278)
 
 This boards cost around 30 Euros, they are very cheap but perfect for an LoRa iGate.
 Keep in minde: you need a 433MHz version!
