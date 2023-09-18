@@ -146,13 +146,13 @@ bool AXP2101::begin(TwoWire &port) {
   _pmu->enablePowerOutput(XPOWERS_ALDO3);
 
   // disable all axp chip interrupt
-  _pmu->disableIRQ(XPOWERS_AXP192_ALL_IRQ);
+  _pmu->disableIRQ(XPOWERS_AXP2101_ALL_IRQ);
 
   // Set constant current charging current
-  _pmu->setChargerConstantCurr(XPOWERS_AXP192_CHG_CUR_780MA);
+  _pmu->setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_800MA);
 
   // Set up the charging voltage
-  _pmu->setChargeTargetVoltage(XPOWERS_AXP192_CHG_VOL_4V2);
+  _pmu->setChargeTargetVoltage(XPOWERS_AXP2101_CHG_VOL_4V2);
 
   _pmu->setChargingLedMode(XPOWERS_CHG_LED_CTRL_CHG);
 
