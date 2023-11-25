@@ -367,6 +367,9 @@ void loop() {
            would lead to decrease of beacon rate in between 5 to 20 km/h. what
            is even below the slow speed rate.
         */
+        if (curr_speed == 0) {
+          curr_speed = 1;
+        }
         txInterval = min(BeaconMan.getCurrentBeaconConfig()->smart_beacon.slow_rate,
                          BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_speed * BeaconMan.getCurrentBeaconConfig()->smart_beacon.fast_rate / curr_speed) *
                      1000;
