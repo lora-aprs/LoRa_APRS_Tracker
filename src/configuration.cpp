@@ -26,7 +26,7 @@ Configuration ConfigurationManagement::readConfiguration() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for reading...");
     return Configuration();
   }
-  DynamicJsonDocument  data(2048);
+  JsonDocument data;
   DeserializationError error = deserializeJson(data, file);
 
   if (error) {
@@ -94,11 +94,11 @@ void ConfigurationManagement::writeConfiguration(Configuration conf) {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Configuration", "Failed to open file for writing...");
     return;
   }
-  DynamicJsonDocument data(2048);
+  JsonDocument data;
 
-  JsonArray beacons = data.createNestedArray("beacons");
+  JsonArray beacons = data["beacons"].to<JsonArray>();
   for (Configuration::Beacon beacon : conf.beacons) {
-    JsonObject v  = beacons.createNestedObject();
+    JsonObject v  = beacons.add<JsonObject>();
     v["callsign"] = beacon.callsign;
     v["path"]     = beacon.path;
     v["message"]  = beacon.message;
